@@ -19,10 +19,7 @@ body {
 }
 
 /* =========================================
-   NAVBAR (TOPO)
-   ========================================= */
-/* =========================================
-   NAVBAR PADRÃO (Copie para todos os CSS)
+   NAVBAR PADRÃO
    ========================================= */
 nav {
     background-color: #0066cc;
@@ -50,9 +47,9 @@ nav .logo img {
 /* Links de Navegação Central */
 .nav-links {
     flex-grow: 1;
-    margin-left: 40px; /* Afasta um pouco da logo */
+    margin-left: 40px;
     display: flex;
-    gap: 20px; /* Espaço entre os links */
+    gap: 20px;
 }
 
 .nav-links a {
@@ -175,7 +172,6 @@ main {
     line-height: 1.2;
 }
 
-
 .icon-blue { background-color: #e3f2fd; color: #1976d2; }
 .icon-yellow { background-color: #fff8e1; color: #fbc02d; }
 .icon-red { background-color: #ffebee; color: #d32f2f; }
@@ -285,42 +281,69 @@ tbody tr:hover {
 }
 
 /* =========================================
-   BADGES DE STATUS (Protocolos)
+   BADGES E SELECTS DE STATUS - CORRIGIDO
    ========================================= */
+/* RESET E CONFIGURAÇÃO DA COLUNA STATUS */
+td:nth-child(7) {
+    width: 150px;
+    min-width: 150px;
+    max-width: 150px;
+    text-align: center;
+}
+td:nth-child(7) {
+    padding-right: 30px !important;
+}
+
+/* ESTILOS BASE */
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500 !important; /* MUDE DE 700 PARA 500 */
+    text-transform: uppercase;
+    display: inline-block;
+    min-width: 130px;
+    text-align: center;
+    box-sizing: border-box;
+}
+
 .status-select {
     padding: 6px 10px;
     border-radius: 20px;
     border: 1px solid transparent;
-    font-weight: 600;
+    font-weight: 500; /* MUDE DE 600 PARA 500 */
     font-size: 0.8rem;
-    cursor: pointer; 
+    cursor: pointer;
     outline: none;
     appearance: none;
     text-align: center;
-    width: 100%;
-    max-width: 140px;
+    width: 140px;
     display: inline-block;
+    box-sizing: border-box;
 }
 
-
-.status-select.aberto, 
-.status-select.nao-compareceu { 
-    background-color: #ffebee; 
-    color: #b71c1c; 
+/* CORES PARA STATUS */
+.status-badge.status-aberto,
+.status-select.status-aberto,
+.status-select.aberto {
+    background-color: #ffebee !important;
+    color: #b71c1c !important;
 }
 
-.status-select.em-andamento, 
-.status-select.agendado { 
-    background-color: #fff8e1; 
-    color: #f57f17; 
+.status-badge.status-em-andamento,
+.status-select.status-em-andamento,
+.status-select.em-andamento {
+    background-color: #fff8e1 !important;
+    color: #f57f17 !important;
 }
 
-.status-select.resolvido, 
-.status-select.atendido { 
-    background-color: #e8f5e9; 
-    color: #388e3c; 
+.status-badge.status-resolvido,
+.status-select.status-resolvido,
+.status-select.resolvido {
+    background-color: #e8f5e9 !important;
+    color: #388e3c !important;
+    font-weight: 500 !important; 
 }
-
 /* =========================================
    BOTÕES E ÍCONES
    ========================================= */
@@ -345,6 +368,11 @@ tbody tr:hover {
     height: 20px;
 }
 
+.btn-resolver:hover {
+    color: #28a745; 
+    background-color: #e8f5e9;
+    border-radius: 50%;
+}
 
 .fab-encaixe {
     position: fixed;
@@ -437,7 +465,6 @@ tbody tr:hover {
 
 .modal-close-icon:hover { color: #333; }
 
-
 .modal-actions-custom {
     display: flex;
     justify-content: center;
@@ -501,11 +528,10 @@ label {
     font-size: 0.85rem;
     color: #444;
 }
-.btn-resolver:hover {
-    color: #28a745; 
-    background-color: #e8f5e9;
-    border-radius: 50%;
-}
+
+/* =========================================
+   CANAL SELECTOR
+   ========================================= */
 .canal-selector-container {
     display: flex;
     gap: 15px;
@@ -535,7 +561,7 @@ label {
 
 /* Estado Selecionado */
 .btn-canal-selector.active {
-    background-color: #e6f0ff; /* Azul bem clarinho */
+    background-color: #e6f0ff;
     border-color: #0066cc;
     color: #0066cc;
     font-weight: bold;
@@ -544,5 +570,5 @@ label {
 .btn-canal-selector svg {
     width: 20px;
     height: 20px;
-    stroke: currentColor; /* Pega a cor do texto */
+    stroke: currentColor;
 }

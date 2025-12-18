@@ -191,7 +191,7 @@ app.get('/api/proximo-protocolo', verificarAuth, async (req, res) => {
         const hora = String(agora.getHours()).padStart(2, '0');
         const minuto = String(agora.getMinutes()).padStart(2, '0');
         
-        const prefixo = `SENADO${ano}${mes}${dia}${hora}${minuto}`;
+        const prefixo = `SIS${ano}${mes}${dia}${hora}${minuto}`;
 
         const query = `
             SELECT numero_protocolo 

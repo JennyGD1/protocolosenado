@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https://www.gstatic.com; connect-src 'self' http://localhost:3000 https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.gstatic.com;">
     <title>Protocolos Senado - Início</title>
-    <link rel="stylesheet" href="/css/index.css">
+    <link rel="stylesheet" href="../css/index.css">
 </head>
 <body>
     <nav>
@@ -254,6 +254,39 @@
 
             <div class="modal-actions-custom">
                 <button class="btn-modal-custom btn-confirm-custom" onclick="fecharModal('modalSucessoFechamento')">OK</button>
+            </div>
+        </div>
+    </div>
+    <div id="modalVisualizar" class="modal-overlay-custom">
+        <div class="modal-content-custom" style="text-align: left; max-width: 500px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h3 class="modal-title-custom" style="margin:0; color:#0066cc;">Detalhes da Resolução</h3>
+                <button onclick="fecharModal('modalVisualizar')" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+            </div>
+            
+            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e9ecef;">
+                <p style="margin-bottom: 5px; font-size: 0.85rem; color: #666;">Protocolo</p>
+                <strong id="view-protocolo" style="font-size: 1.1rem; color: #333;">-</strong>
+            </div>
+
+            <div style="margin-top: 15px;">
+                <label style="font-weight:600; color:#444;">O que foi feito (Tratativa):</label>
+                <div id="view-tratativa" style="margin-top:5px; padding:10px; background:#fff; border:1px solid #ddd; border-radius:6px; min-height:80px; white-space: pre-wrap; color: #333;"></div>
+            </div>
+
+            <div style="margin-top: 15px; display: flex; justify-content: space-between;">
+                <div>
+                    <label style="font-size: 0.8rem; color:#666;">Resolvido por:</label>
+                    <div id="view-responsavel" style="font-weight: 500; font-size: 0.9rem;">-</div>
+                </div>
+                <div style="text-align: right;">
+                    <label style="font-size: 0.8rem; color:#666;">Data:</label>
+                    <div id="view-data" style="font-weight: 500; font-size: 0.9rem;">-</div>
+                </div>
+            </div>
+
+            <div class="modal-actions-custom" style="margin-top: 25px;">
+                <button class="btn-modal-custom btn-confirm-custom" onclick="fecharModal('modalVisualizar')" style="width: 100%;">Fechar</button>
             </div>
         </div>
     </div>
