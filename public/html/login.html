@@ -2,31 +2,35 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" 
-  content="default-src 'self' https://www.gstatic.com https://*.firebaseapp.com https://*.firebase.com; 
-           script-src 'self' 'unsafe-inline' https://www.gstatic.com https://*.firebaseapp.com; 
-           connect-src 'self' http://localhost:3000 https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://*.firebaseio.com; 
-           style-src 'self' 'unsafe-inline'; 
-           img-src 'self' data: https://www.gstatic.com https://*.googleapis.com;">
+    content="default-src 'self' https://www.gstatic.com https://*.firebaseapp.com https://*.firebase.com; 
+             script-src 'self' 'unsafe-inline' https://www.gstatic.com https://*.firebaseapp.com; 
+             connect-src 'self' http://localhost:3000 https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://*.firebaseio.com; 
+             style-src 'self' 'unsafe-inline'; 
+             img-src 'self' data: https://www.gstatic.com https://*.googleapis.com;">
     <title>Login - Gestão de Protocolos Senado</title>
     <link rel="stylesheet" href="../css/login.css">
 </head>
 <body>
-    <div class="login-screen">
-        <div class="login-card">
-            <img src="../img/logo_maidaescura.png" alt="Logo">
-            <h2>Protcolos Senado</h2>
-            <p style="margin-bottom: 30px; color: #666;">Use seu e-mail @maida.health</p>
-            <button class="btn-google" onclick="fazerLoginGoogle()">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20">
-                Entrar com Google
-            </button>
+    <div id="loading-overlay">Processando login...</div>
+
+    <div class="login-container">
+        <div class="login-header">
+            <img src="../img/logo_maidaescura.png" alt="Maida Logo" class="login-logo">
+            <h2 style="color: #0066cc; margin-bottom: 10px;">Protocolos Senado</h2>
+            <p>Utilize seu e-mail corporativo (@maida.health) para entrar</p>
         </div>
+        
+        <button class="btn-google" onclick="fazerLoginGoogle()">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google Logo">
+            Entrar com Google
+        </button>
     </div>
 
     <div id="modalSistema" class="modal-overlay-custom">
         <div class="modal-content-custom">
-            <div id="modalTitulo" class="modal-title-custom">Aviso</div>
+            <div id="modalTitulo" class="modal-title-custom">Atenção</div>
             <div id="modalMensagem" class="modal-body-custom"></div>
             <div id="modalBotoes" class="modal-actions-custom"></div>
         </div>
