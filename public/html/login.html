@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" 
+  content="default-src 'self' https://www.gstatic.com https://*.firebaseapp.com https://*.firebase.com; 
+           script-src 'self' 'unsafe-inline' https://www.gstatic.com https://*.firebaseapp.com; 
+           connect-src 'self' http://localhost:3000 https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://*.firebaseio.com; 
+           style-src 'self' 'unsafe-inline'; 
+           img-src 'self' data: https://www.gstatic.com https://*.googleapis.com;">
+    <title>Login - Gestão de Protocolos Senado</title>
+    <link rel="stylesheet" href="../css/login.css">
+</head>
+<body>
+    <div class="login-screen">
+        <div class="login-card">
+            <img src="../img/logo_maida_azul.png" alt="Logo">
+            <h2>Protcolos Senado</h2>
+            <p style="margin-bottom: 30px; color: #666;">Use seu e-mail @maida.health</p>
+            <button class="btn-google" onclick="fazerLoginGoogle()">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20">
+                Entrar com Google
+            </button>
+        </div>
+    </div>
+
+    <div id="modalSistema" class="modal-overlay-custom">
+        <div class="modal-content-custom">
+            <div id="modalTitulo" class="modal-title-custom">Aviso</div>
+            <div id="modalMensagem" class="modal-body-custom"></div>
+            <div id="modalBotoes" class="modal-actions-custom"></div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="../js/login.js"></script>
+</body>
+</html>

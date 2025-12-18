@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self';
+        script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdnjs.cloudflare.com;
+        style-src 'self' 'unsafe-inline';
+        img-src 'self' data:;
+        connect-src 'self' http://localhost:3000 https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.gstatic.com https://cdnjs.cloudflare.com;
+    ">
+    <title>Histórico de Protocolos</title>
+    <link rel="stylesheet" href="/css/historico.css">
+</head>
+<body>
+    <nav>
+        <div class="logo">
+            <img src="/img/logo_maida_branca.png" alt="Maida Health">
+        </div>
+        
+        <div class="nav-links">
+            <a href="/protocolos">Início</a>
+            <a href="/html/dashboard.html">Dashboard</a>
+            <a href="/html/historico.html" class="active">Histórico</a>
+        </div>
+
+        <div class="user-info">
+            <span id="user-display">Carregando...</span>
+            <button onclick="logout()" class="btn-logout" title="Sair">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2 2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+            </button>
+        </div>
+    </nav>
+
+    <main>
+        <div class="filtros-container">
+            <div>
+                <label>Data Início:</label>
+                <input type="date" id="dataInicio">
+            </div>
+            <div>
+                <label>Data Fim:</label>
+                <input type="date" id="dataFim">
+            </div>
+            <div>
+                <label>Tipo:</label>
+                <select id="filtroTipo">
+                    <option value="">Todos</option>
+                    <option value="solicitação">Solicitação</option>
+                    <option value="informação">Informação</option>
+                    <option value="reclamação">Reclamação</option>
+                </select>
+            </div>
+            <div>
+                <label>Assunto:</label>
+                <select id="filtroAssunto">
+                    <option value="">Todos</option>
+                    <option value="critérios">Critérios</option>
+                    <option value="autorização">Autorização</option>
+                    <option value="envio de faturamento">Envio de Faturamento</option>
+                    <option value="problema no sistema">Problema no Sistema</option>
+                    <option value="duvida geral odonto">Dúvida Geral Odonto</option>
+                    <option value="usuário e senha">Usuário e Senha</option>
+                    <option value="duvida geral, exceto odonto">Dúvida Geral (Exceto Odonto)</option>
+                    <option value="pagamento">Pagamento</option>
+                    <option value="credenciamento">Credenciamento</option>
+                    <option value="criação de acesso">Criação de Acesso</option>
+                    <option value="abertura de guia">Abertura de Guia</option>
+                </select>
+            </div>
+            <button onclick="aplicarFiltros()">Filtrar</button>
+            <button onclick="limparFiltros()" style="background-color: #6c757d;">Limpar</button>
+            <button onclick="baixarExcel()" style="background-color: #28a745; margin-left: 10px; padding: 10px 15px;" title="Baixar Excel">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+            </button>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th style="text-align: center;">Canal</th> <th>Protocolo</th>
+                    <th>Tipo</th>
+                    <th>Prestador / CNPJ</th>
+                    <th>Assunto</th>
+                    <th>Status</th>
+                    <th>Prazo</th>
+                </tr>
+            </thead>
+            <tbody id="listaHistorico">
+            </tbody>
+        </table>
+
+        <div class="paginacao-container">
+            <button id="btnAnterior" onclick="mudarPagina(-1)" disabled>Anterior</button>
+            <span id="infoPaginacao">Página 1 de 1</span>
+            <button id="btnProximo" onclick="mudarPagina(1)" disabled>Próximo</button>
+        </div>
+    </main>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+    <script src="/js/historico.js"></script>
+</body>
+</body>
+</html>

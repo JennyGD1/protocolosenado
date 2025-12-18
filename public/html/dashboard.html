@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self';
+        script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdn.jsdelivr.net;
+        style-src 'self' 'unsafe-inline';
+        img-src 'self' data:;
+        connect-src 'self' http://localhost:3000 https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.gstatic.com;
+    ">
+    <title>Dashboard - Indicadores</title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+    <nav>
+        <div class="logo">
+            <img src="/img/logo_maida_branca.png" alt="Maida Health">
+        </div>
+        
+        <div class="nav-links">
+            <a href="/protocolos">Início</a>
+            <a href="/html/dashboard.html" class="active">Dashboard</a>
+            <a href="/html/historico.html">Histórico</a>
+        </div>
+
+        <div class="user-info">
+            <span id="user-display">Carregando...</span>
+            <button onclick="logout()" class="btn-logout" title="Sair">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2 2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+            </button>
+        </div>
+    </nav>
+
+    <main>
+        <div class="header-title">
+            <h1>Visão Geral da Operação</h1>
+            <p>Acompanhamento de métricas e desempenho em tempo real</p>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="chart-card full-width">
+                <h3>Evolução de Solicitações (Últimos 7 Dias)</h3>
+                <div class="chart-container-large">
+                    <canvas id="chartLinha"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <h3>Top 5 - Abertura de Protocolos</h3>
+                <div class="chart-container">
+                    <canvas id="chartAbertura"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <h3>Top 5 - Resolução de Casos</h3>
+                <div class="chart-container">
+                    <canvas id="chartTratativa"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <h3>Assuntos Mais Recorrentes (Top 5)</h3>
+                <div class="chart-container">
+                    <canvas id="chartAssuntos"></canvas>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+
+    <script src="/js/dashboard.js"></script>
+</body>
+</html>
