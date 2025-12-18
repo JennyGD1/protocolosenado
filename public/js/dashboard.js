@@ -1,6 +1,6 @@
 const token = localStorage.getItem('maida_token');
 
-// Registra o plugin para usar em todos os gráficos
+
 Chart.register(ChartDataLabels);
 
 if (!token) window.location.href = '/';
@@ -32,7 +32,7 @@ async function carregarGraficos() {
         renderizarLinha(dados.graficoLinha);
         renderizarBarrasHorizontal('chartAbertura', dados.rankingAbertura, 'Abertos', '#0066cc');
         renderizarBarrasHorizontal('chartTratativa', dados.rankingTratativa, 'Resolvidos', '#28a745');
-        // Mudado para gráfico de colunas (Vertical)
+
         renderizarColunasAssuntos('chartAssuntos', dados.rankingAssuntos);
 
     } catch (error) {
@@ -40,7 +40,7 @@ async function carregarGraficos() {
     }
 }
 
-// --- GRÁFICO DE LINHA (EVOLUÇÃO) ---
+
 function renderizarLinha(dados) {
     const ctx = document.getElementById('chartLinha').getContext('2d');
     const dias = [...new Set(dados.map(d => d.dia))];
@@ -93,7 +93,7 @@ function renderizarLinha(dados) {
             layout: { padding: { top: 20 } }, // Espaço para o número não cortar
             plugins: { 
                 legend: { position: 'top', align: 'end' },
-                // Configuração dos Números nas Linhas
+
                 datalabels: {
                     align: 'top',
                     anchor: 'center',
@@ -117,13 +117,13 @@ function renderizarLinha(dados) {
     });
 }
 
-// --- GRÁFICOS DE BARRAS HORIZONTAIS (COLABORADORES) ---
+
 function renderizarBarrasHorizontal(id, dados, label, cor) {
     const ctx = document.getElementById(id).getContext('2d');
     const labels = dados.map(d => d.email ? d.email.split('@')[0] : 'Sistema');
     const valores = dados.map(d => parseInt(d.total));
     
-    // Calcula o total para a porcentagem
+
     const totalGeral = valores.reduce((a, b) => a + b, 0);
 
     new Chart(ctx, {
@@ -165,11 +165,11 @@ function renderizarBarrasHorizontal(id, dados, label, cor) {
     });
 }
 
-// --- GRÁFICO DE COLUNAS VERTICAIS (ASSUNTOS) ---
+
 function renderizarColunasAssuntos(id, dados) {
     const ctx = document.getElementById(id).getContext('2d');
     
-    // Pega apenas top 5 (caso o backend mande mais)
+
     const top5 = dados.slice(0, 5);
     const labels = top5.map(d => d.assunto);
     const valores = top5.map(d => parseInt(d.total));
@@ -182,7 +182,7 @@ function renderizarColunasAssuntos(id, dados) {
             datasets: [{
                 label: 'Ocorrências',
                 data: valores,
-                // Cores variadas para cada coluna
+
                 backgroundColor: ['#0066cc', '#28a745', '#fbc02d', '#d32f2f', '#6c757d'],
                 borderRadius: 4,
                 barPercentage: 0.5

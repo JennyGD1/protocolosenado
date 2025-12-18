@@ -41,12 +41,12 @@ nav .logosis img {
     width: auto;
 }
 
-/* Links de Navegação Central */
+
 .nav-links {
     flex-grow: 1;
-    margin-left: 40px; /* Afasta um pouco da logo */
+    margin-left: 40px; 
     display: flex;
-    gap: 20px; /* Espaço entre os links */
+    gap: 20px; 
 }
 
 .nav-links a {
@@ -69,7 +69,7 @@ nav .logosis img {
     border-bottom: 2px solid white;
 }
 
-/* Área do Usuário */
+
 nav .user-info {
     font-size: 0.9rem;
     display: flex;
@@ -217,7 +217,7 @@ td svg {
     display: inline-block;
 }
 
-/* Garante que a coluna de canal não fique muito larga */
+
 th:nth-child(2), td:nth-child(2) {
     width: 60px;
     text-align: center;

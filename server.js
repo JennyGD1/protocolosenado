@@ -321,10 +321,10 @@ app.get('/api/historico', verificarAuth, async (req, res) => {
         res.status(500).json({ error: 'Erro ao buscar histórico.' });
     }
 });
-// Rota para dados dos gráficos do Dashboard
+
 app.get('/api/dashboard-dados', verificarAuth, async (req, res) => {
     try {
-        // 1. Gráfico de Linhas (Últimos 7 dias: Solicitação x Informação x Reclamação)
+
         const queryLinha = `
             SELECT 
                 TO_CHAR(data_registro, 'DD/MM') as dia,
@@ -336,7 +336,7 @@ app.get('/api/dashboard-dados', verificarAuth, async (req, res) => {
             ORDER BY 1;
         `;
 
-        // 2. Top Colaboradores - Abertura (Quem mais abre chamados)
+
         const queryPerformanceAbertura = `
             SELECT email_registrante as email, COUNT(*) as total 
             FROM protocolos 
@@ -345,7 +345,7 @@ app.get('/api/dashboard-dados', verificarAuth, async (req, res) => {
             LIMIT 5;
         `;
 
-        // 3. Top Colaboradores - Tratativa (Quem mais resolve)
+
         const queryPerformanceTratativa = `
             SELECT email_tratativa as email, COUNT(*) as total 
             FROM protocolos 
@@ -355,7 +355,7 @@ app.get('/api/dashboard-dados', verificarAuth, async (req, res) => {
             LIMIT 5;
         `;
 
-        // 4. Top Assuntos (Pareto)
+
         const queryAssuntos = `
             SELECT assunto, COUNT(*) as total 
             FROM protocolos 
@@ -383,7 +383,7 @@ app.get('/api/dashboard-dados', verificarAuth, async (req, res) => {
         res.status(500).json({ error: 'Erro no servidor' });
     }
 });
-// Rota para a página de Dashboard
+
 app.get('/dashboard', (req, res) => {
     res.redirect('/html/dashboard.html');
 });

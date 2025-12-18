@@ -48,7 +48,7 @@ nav .logosis img {
     width: auto;
 }
 
-/* Links de Navegação Central */
+
 .nav-links {
     flex-grow: 1;
     margin-left: 40px;
@@ -76,7 +76,7 @@ nav .logosis img {
     border-bottom: 2px solid white;
 }
 
-/* Área do Usuário */
+
 nav .user-info {
     font-size: 0.9rem;
     display: flex;
@@ -287,7 +287,7 @@ tbody tr:hover {
 /* =========================================
    BADGES E SELECTS DE STATUS - CORRIGIDO
    ========================================= */
-/* RESET E CONFIGURAÇÃO DA COLUNA STATUS */
+
 td:nth-child(7) {
     width: 150px;
     min-width: 150px;
@@ -298,12 +298,12 @@ td:nth-child(7) {
     padding-right: 30px !important;
 }
 
-/* ESTILOS BASE */
+
 .status-badge {
     padding: 6px 12px;
     border-radius: 20px;
     font-size: 0.75rem;
-    font-weight: 500 !important; /* MUDE DE 700 PARA 500 */
+    font-weight: 500 !important; 
     text-transform: uppercase;
     display: inline-block;
     min-width: 130px;
@@ -315,7 +315,7 @@ td:nth-child(7) {
     padding: 6px 10px;
     border-radius: 20px;
     border: 1px solid transparent;
-    font-weight: 500; /* MUDE DE 600 PARA 500 */
+    font-weight: 500; 
     font-size: 0.8rem;
     cursor: pointer;
     outline: none;
@@ -326,7 +326,7 @@ td:nth-child(7) {
     box-sizing: border-box;
 }
 
-/* CORES PARA STATUS */
+
 .status-badge.status-aberto,
 .status-select.status-aberto,
 .status-select.aberto {
@@ -563,7 +563,7 @@ label {
     border-color: #b0b8c0;
 }
 
-/* Estado Selecionado */
+
 .btn-canal-selector.active {
     background-color: #e6f0ff;
     border-color: #0066cc;

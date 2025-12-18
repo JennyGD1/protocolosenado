@@ -52,7 +52,7 @@ async function carregarProtocolos() {
             );
         }
 
-        // Contadores
+
         const total = dados.length;
         const abertos = dados.filter(p => p.status === 'aberto').length;
         const andamento = dados.filter(p => p.status === 'em andamento').length;
@@ -76,7 +76,7 @@ async function carregarProtocolos() {
 
             const hora = new Date(p.data_registro).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-            // ÍCONES DE CANAL
+
             const iconPhone = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>`;
             const iconMail = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>`;
             const canalIcone = p.canal === 'email' ? iconMail : iconPhone;
@@ -84,18 +84,18 @@ async function carregarProtocolos() {
             const cnpjValor = p.cnpj ? p.cnpj : (p.nu_cnpj || ""); 
             const htmlCnpj = cnpjValor ? `<small style="color:#777; display:block; font-size:0.75rem;">${cnpjValor}</small>` : '';
             
-            // DEMANDANTE: Incluído embaixo do prestador para não quebrar a tabela
+
             const htmlDemandante = p.demandante ? `<div style="font-size:0.8rem; color:#0066cc; margin-top:2px;">Solicitante: ${p.demandante}</div>` : '';
 
             let htmlStatus;
             let htmlAcao;
 
-            // LÓGICA DE TRAVAMENTO (Se resolvido ou cliente -> Modo Leitura)
+
             if (p.status === 'resolvido' || userRole === 'cliente') {
-                // BADGE VERDE/FIXO
+
                 htmlStatus = `<span class="status-badge status-${p.status.replace(/\s+/g, '-')}" style="display:inline-block; padding: 6px 12px; font-size: 0.8rem;">${p.status.toUpperCase()}</span>`;
                 
-                // BOTÃO OLHO AZUL
+
                 htmlAcao = `
                     <button class="btn-icon" onclick="verDetalhes(${p.id})" title="Ver Detalhes">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0066cc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -105,7 +105,7 @@ async function carregarProtocolos() {
                     </button>
                 `;
             } else {
-                // SELECT E BOTÃO RESOLVER (Para Aberto/Em andamento)
+
                 const classeSelect = p.status === 'aberto' ? 'status-aberto' : 'status-em-andamento';
                 
                 htmlStatus = `
@@ -116,7 +116,7 @@ async function carregarProtocolos() {
                     </select>
                 `;
 
-                // Ícone de "Resolver" (Check/Quadrado) em VERDE ou AZUL
+
                 htmlAcao = `
                     <button class="btn-icon btn-resolver" onclick="abrirModalResolver(${p.id})" title="Resolver">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0066cc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -150,8 +150,8 @@ async function carregarProtocolos() {
     }
 }
 
-// Resto das funções (alterarStatusDireto, salvarProtocolo, etc) permanecem iguais...
-// ... (mantenha o restante do seu arquivo JS abaixo desta função) ...
+
+
 
 function verDetalhes(id) {
     const p = listaProtocolosAtual.find(item => item.id === id);
