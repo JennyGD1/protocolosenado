@@ -230,13 +230,14 @@ async function salvarProtocolo() {
     const assunto = document.getElementById('form-assunto').value;
     const observacao = document.getElementById('form-obs').value;
     const canal = document.getElementById('form-canal').value;
+    const demandante = document.getElementById('form-demandante').value;
 
     if (!numero || numero === 'Gerando...' || !prestador || !assunto) {
         alert("Preencha os campos obrigatórios e aguarde o número.");
         return;
     }
 
-    const payload = { numero, tipo, prestador, cnpj, assunto, observacao,canal };
+    const payload = { numero, tipo, prestador, cnpj, assunto, observacao, canal, demandante };
 
     try {
         const btnSalvar = document.querySelector('#modalNovo .btn-confirm-custom');
@@ -262,6 +263,7 @@ async function salvarProtocolo() {
             document.getElementById('form-numero').value = '';
             document.getElementById('form-prestador').value = '';
             document.getElementById('form-cnpj').value = '';
+            document.getElementById('form-demandante').value = '';
             document.getElementById('form-assunto').value = '';
             document.getElementById('form-obs').value = '';
         } else {

@@ -115,7 +115,8 @@
                     <label>Número do Protocolo:</label>
                     <input type="text" id="form-numero" class="input-moderno" placeholder="Aguardando geração..." readonly>
                 </div>
-                <div style="margin-bottom: 15px;">
+
+                <div style="margin-bottom: 5px;">
                     <label style="display:block; margin-bottom:5px; font-weight:600; color:#555;">Canal de Atendimento *</label>
                     <div class="canal-selector-container">
                         <div class="btn-canal-selector active" id="btn-canal-telefone" onclick="selecionarCanal('telefone')">
@@ -136,15 +137,18 @@
                     <input type="hidden" id="form-canal" value="telefone">
                 </div>
 
-                <div style="display: flex; gap: 10px;">
-                    <div style="flex: 1;">
-                        <label>Tipo:</label>
-                        <select id="form-tipo" class="input-moderno">
-                            <option value="solicitação">Solicitação</option>
-                            <option value="informação">Informação</option>
-                            <option value="reclamação">Reclamação</option>
-                        </select>
-                    </div>
+                <div>
+                    <label>Nome do Demandante:</label>
+                    <input type="text" id="form-demandante" class="input-moderno" placeholder="Quem está entrando em contato?">
+                </div>
+
+                <div>
+                    <label>Tipo:</label>
+                    <select id="form-tipo" class="input-moderno">
+                        <option value="solicitação">Solicitação</option>
+                        <option value="informação">Informação</option>
+                        <option value="reclamação">Reclamação</option>
+                    </select>
                 </div>
 
                 <div>

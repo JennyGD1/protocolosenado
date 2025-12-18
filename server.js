@@ -82,7 +82,7 @@ app.get('/api/protocolos', verificarAuth, async (req, res) => {
     const { data } = req.query;
     try {
         let query = `
-            SELECT v.*, p.cnpj, p.canal 
+            SELECT v.*, p.cnpj, p.canal, p.demandante 
             FROM vw_relatorio_protocolos v
             JOIN protocolos p ON v.id = p.id
         `;
@@ -108,14 +108,14 @@ app.post('/api/protocolos', verificarAuth, async (req, res) => {
         return res.status(403).json({ error: 'Clientes não podem criar protocolos.' });
     }
 
-    const { numero, tipo, prestador, cnpj, assunto, observacao, canal } = req.body;
+    const { numero, tipo, prestador, cnpj, assunto, observacao, canal, demandante } = req.body;
     try {
         const query = `
-            INSERT INTO protocolos (numero_protocolo, email_registrante, tipo, prestador, cnpj, assunto, observacao, canal) 
+            INSERT INTO protocolos (numero_protocolo, email_registrante, tipo, prestador, cnpj, assunto, observacao, canal, demandante) 
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
             RETURNING id
         `;
-        const values = [numero, req.user.email, tipo, prestador, cnpj, assunto, observacao, canal];
+        const values = [numero, req.user.email, tipo, prestador, cnpj, assunto, observacao, canal, demandante];
         await pool.query(query, values);
         res.json({ success: true, message: 'Protocolo registrado!' });
     } catch (error) {
@@ -297,7 +297,7 @@ app.get('/api/historico', verificarAuth, async (req, res) => {
 
         const offset = (page - 1) * limit;
         const dataQuery = `
-            SELECT v.*, p.cnpj, p.tratativa, p.canal
+            SELECT v.*, p.cnpj, p.tratativa, p.canal, p.demandante
             FROM vw_relatorio_protocolos v
             JOIN protocolos p ON v.id = p.id
             ${whereString}

@@ -61,7 +61,7 @@ function renderizarTabela(dados) {
         return;
     }
 
-    // ÍCONES SVG CORRIGIDOS
+    // ÍCONES SVG
     const iconPhone = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>`;
     const iconMail = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>`;
 
@@ -71,27 +71,28 @@ function renderizarTabela(dados) {
         const cnpjValor = p.cnpj || p.nu_cnpj || p.cpf_cnpj || "";
         const htmlCnpj = cnpjValor ? `<small style="color:#666; display:block;">${cnpjValor}</small>` : '';
 
-        // Lógica para escolher o ícone (Telefone é o padrão se vier nulo)
         const canalIcone = p.canal === 'email' ? iconMail : iconPhone;
         const tituloCanal = p.canal === 'email' ? 'Email' : 'Telefone';
 
         const classeStatus = `status-${p.status.replace(/\s+/g, '-')}`;
         
         const tr = document.createElement('tr');
+        
         tr.innerHTML = `
             <td>${dataFormatada}</td>
             <td style="text-align:center;" title="${tituloCanal}">${canalIcone}</td>
             <td style="font-weight:bold;">${p.numero_protocolo}</td>
             <td style="text-transform: capitalize;">${p.tipo}</td>
+            
+            <td>${p.demandante || '-'}</td>
+            
             <td>${p.prestador}${htmlCnpj}</td>
             <td style="text-transform: capitalize;">${p.assunto}</td>
             <td><span class="status-badge ${classeStatus}">${p.status}</span></td>
-            <td>${p.alerta_prazo || '-'}</td>
         `;
         tbody.appendChild(tr);
     });
 }
-
 function aplicarFiltros() {
     paginaAtual = 1;
     buscarHistorico();
@@ -151,11 +152,11 @@ async function baixarExcel() {
             { header: 'Canal', key: 'canal', width: 15 },
             { header: 'Protocolo', key: 'protocolo', width: 25 },
             { header: 'Tipo', key: 'tipo', width: 15 },
+            { header: 'Demandante', key: 'demandante', width: 25 },
             { header: 'Prestador', key: 'prestador', width: 30 },
             { header: 'CNPJ', key: 'cnpj', width: 20 },
             { header: 'Assunto', key: 'assunto', width: 35 },
             { header: 'Status', key: 'status', width: 15 },
-            { header: 'Prazo', key: 'prazo', width: 15 },
             { header: 'Data Fechamento', key: 'fechamento', width: 20 },
             { header: 'Tratativa', key: 'tratativa', width: 40 }
         ];
@@ -169,12 +170,12 @@ async function baixarExcel() {
                 data: dataReg,
                 protocolo: d.numero_protocolo,
                 canal: d.canal ? (d.canal.charAt(0).toUpperCase() + d.canal.slice(1)) : 'Telefone',
+                demandante: d.demandante || "",
                 tipo: formatarParaTitulo(d.tipo), 
                 prestador: d.prestador,
                 cnpj: cnpj,
                 assunto: formatarParaTitulo(d.assunto), 
                 status: d.status ? d.status.toUpperCase() : '',
-                prazo: d.alerta_prazo,
                 fechamento: dataFech,
                 tratativa: d.tratativa || ""
             });
@@ -204,7 +205,7 @@ async function baixarExcel() {
                     
                     cell.alignment = { vertical: 'middle', horizontal: 'center' };
 
-                    if (colNumber === 8) { // Ajustado índice da coluna Status (agora é a 8ª)
+                    if (colNumber === 9) { 
                         const val = cell.value;
                         if (val === 'ABERTO') cell.font = { color: { argb: 'D32F2F' }, bold: true };
                         if (val === 'RESOLVIDO') cell.font = { color: { argb: '388E3C' }, bold: true };
