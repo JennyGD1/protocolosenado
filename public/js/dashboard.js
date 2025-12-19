@@ -15,6 +15,11 @@ async function inicializar() {
         const user = await response.json();
         document.getElementById('user-display').innerText = user.email;
 
+        if (user.role === 'restrito') {
+            bloquearInterfaceRestrita();
+            return; 
+        }
+
         carregarGraficos();
 
     } catch (e) {
@@ -196,7 +201,7 @@ function renderizarColunasAssuntos(id, dados) {
                 legend: { display: false },
                 datalabels: {
                     anchor: 'end',
-                    align: 'end', // Fica em cima da coluna
+                    align: 'end', 
                     color: '#333',
                     font: { weight: 'bold' },
                     formatter: (value) => {
@@ -207,13 +212,30 @@ function renderizarColunasAssuntos(id, dados) {
                 }
             },
             scales: { 
-                y: { display: false, grid: { display: false } }, // Remove eixo Y e grade
-                x: { grid: { display: false } } // Remove grade X
+                y: { display: false, grid: { display: false } }, 
+                x: { grid: { display: false } } 
             }
         }
     });
 }
+function bloquearInterfaceRestrita() {
+    const navLinks = document.querySelector('.nav-links');
+    if (navLinks) navLinks.style.display = 'none';
 
+    const main = document.querySelector('main');
+    if (main) {
+        main.innerHTML = `
+            <div style="text-align: center; margin-top: 50px; padding: 40px; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+                <div style="color: #fbc02d; margin-bottom: 20px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                </div>
+                <h2 style="color: #333; margin-bottom: 10px;">Acesso Pendente</h2>
+                <p style="color: #666; font-size: 1.1rem;">Você não tem permissão para visualizar o Dashboard.</p>
+                <p style="color: #666; margin-top: 10px;">Solicite acesso ao administrador.</p>
+            </div>
+        `;
+    }
+}
 function logout() {
     localStorage.clear();
     window.location.href = '/';

@@ -1,15 +1,8 @@
-/* =========================================
-   RESET E ESTILOS GERAIS
-   ========================================= */
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-}
-
-html {
-    scrollbar-gutter: stable;
 }
 
 body {
@@ -18,9 +11,6 @@ body {
     min-height: 100vh;
 }
 
-/* =========================================
-   NAVBAR PADRÃO
-   ========================================= */
 nav {
     background-color: #0066cc;
     color: white;
@@ -31,23 +21,15 @@ nav {
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-nav .logo {
-    font-size: 1.4rem;
-    font-weight: bold;
+.logo, .logosis {
     display: flex;
     align-items: center;
-    gap: 10px;
 }
 
-nav .logo img {
+.logo img, .logosis img {
     height: 40px;
     width: auto;
 }
-nav .logosis img {
-    height: 40px;
-    width: auto;
-}
-
 
 .nav-links {
     flex-grow: 1;
@@ -76,8 +58,7 @@ nav .logosis img {
     border-bottom: 2px solid white;
 }
 
-
-nav .user-info {
+.user-info {
     font-size: 0.9rem;
     display: flex;
     align-items: center;
@@ -98,18 +79,12 @@ nav .user-info {
 .btn-logout:hover { opacity: 1; }
 .btn-logout svg { width: 24px; height: 24px; }
 
-/* =========================================
-   LAYOUT PRINCIPAL
-   ========================================= */
 main {
     max-width: 1200px;
     margin: 30px auto;
     padding: 0 20px;
 }
 
-/* =========================================
-   CARDS DE RESUMO (DASHBOARD)
-   ========================================= */
 .cards-container {
     display: flex;
     gap: 20px;
@@ -181,9 +156,6 @@ main {
 .icon-red { background-color: #ffebee; color: #d32f2f; }
 .icon-green { background-color: #e8f5e9; color: #388e3c; }
 
-/* =========================================
-   FILTROS E BUSCA
-   ========================================= */
 .filtros-container {
     background: #ffffff;
     padding: 15px 20px;
@@ -239,9 +211,6 @@ main {
     background-color: #0056b3;
 }
 
-/* =========================================
-   TABELA DE DADOS
-   ========================================= */
 table {
     width: 100%;
     border-collapse: separate;
@@ -284,26 +253,11 @@ tbody tr:hover {
     background-color: #fcfcfc;
 }
 
-/* =========================================
-   BADGES E SELECTS DE STATUS - CORRIGIDO
-   ========================================= */
-
-td:nth-child(7) {
-    width: 150px;
-    min-width: 150px;
-    max-width: 150px;
-    text-align: center;
-}
-td:nth-child(7) {
-    padding-right: 30px !important;
-}
-
-
-.status-badge {
+.status-badge, .status-select {
     padding: 6px 12px;
     border-radius: 20px;
     font-size: 0.75rem;
-    font-weight: 500 !important; 
+    font-weight: 500;
     text-transform: uppercase;
     display: inline-block;
     min-width: 130px;
@@ -312,77 +266,92 @@ td:nth-child(7) {
 }
 
 .status-select {
-    padding: 6px 10px;
-    border-radius: 20px;
-    border: 1px solid transparent;
-    font-weight: 500; 
-    font-size: 0.8rem;
-    cursor: pointer;
-    outline: none;
-    appearance: none;
-    text-align: center;
-    width: 140px;
-    display: inline-block;
-    box-sizing: border-box;
+    margin: 0;
+    width: 140px; /* Largura fixa para alinhar a coluna verticalmente */
 }
 
-
 .status-badge.status-aberto,
-.status-select.status-aberto,
-.status-select.aberto {
+.status-select.status-aberto {
     background-color: #ffebee !important;
     color: #b71c1c !important;
 }
 
 .status-badge.status-em-andamento,
-.status-select.status-em-andamento,
-.status-select.em-andamento {
+.status-select.status-em-andamento {
     background-color: #fff8e1 !important;
     color: #f57f17 !important;
 }
 
 .status-badge.status-resolvido,
-.status-select.status-resolvido,
-.status-select.resolvido {
+.status-select.status-resolvido {
     background-color: #e8f5e9 !important;
     color: #388e3c !important;
-    font-weight: 500 !important; 
 }
-/* =========================================
-   BOTÕES E ÍCONES
-   ========================================= */
-.btn-icon {
-    background: none;
-    border: none;
-    cursor: pointer;
-    transition: transform 0.2s, color 0.2s;
+.status-badge {
+    width: 140px; /* Mesma largura do select para manter alinhamento */
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 5px;
-    color: #0066cc;
 }
 
-.btn-icon:hover {
-    transform: scale(1.1);
+.acoes-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px; 
 }
 
-.btn-icon svg {
-    width: 20px;
-    height: 20px;
+.btn-acao {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 0;
+    color: #555;
+}
+
+.btn-acao:hover {
+    background-color: #f0f0f0;
+    transform: translateY(-1px);
+}
+
+.btn-resolver {
+    color: #28a745;
+    border-color: #28a745;
 }
 
 .btn-resolver:hover {
-    color: #28a745; 
-    background-color: #e8f5e9;
-    border-radius: 50%;
+    background-color: #28a745;
+    color: white;
+}
+
+.btn-detalhes {
+    color: #0066cc;
+    border-color: #0066cc;
+}
+
+.btn-detalhes:hover {
+    background-color: #0066cc;
+    color: white;
+}
+
+.btn-acao svg {
+    width: 18px;
+    height: 18px;
+    pointer-events: none;
 }
 
 .fab-encaixe {
     position: fixed;
     bottom: 30px;
-    left: 30px; 
-    background-color: #28a745; 
+    left: 30px;
+    background-color: #28a745;
     color: white;
     width: 60px;
     height: 60px;
@@ -390,7 +359,7 @@ td:nth-child(7) {
     border: none;
     box-shadow: 0 4px 10px rgba(0,0,0,0.3);
     cursor: pointer;
-    display: flex; 
+    display: flex;
     align-items: center;
     justify-content: center;
     z-index: 1000;
@@ -407,56 +376,55 @@ td:nth-child(7) {
     height: 30px;
 }
 
-/* =========================================
-   MODAIS
-   ========================================= */
-.modal-overlay-custom {
+.modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
     background: rgba(0,0,0,0.5);
-    display: none; 
+    display: none;
     justify-content: center;
     align-items: center;
     z-index: 2000;
 }
 
-.modal-content-custom {
+.modal-content {
     background: white;
     padding: 25px;
     border-radius: 12px;
     width: 90%;
-    max-width: 450px; 
+    max-width: 450px;
     text-align: center;
     box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    animation: fadeInModal 0.2s ease-out;
+    animation: fadeIn 0.2s ease-out;
     position: relative;
     max-height: 90vh;
     overflow-y: auto;
 }
 
-@keyframes fadeInModal {
+@keyframes fadeIn {
     from { opacity: 0; transform: scale(0.95); }
     to { opacity: 1; transform: scale(1); }
 }
 
-.modal-title-custom {
+.modal-title {
     font-size: 1.25rem;
     font-weight: bold;
     margin-bottom: 20px;
     color: #333;
 }
 
-.modal-body-custom {
+.modal-title.success { color: #28a745; }
+
+.modal-body {
     font-size: 1rem;
     color: #555;
     margin-bottom: 25px;
     line-height: 1.5;
 }
 
-.modal-close-icon {
+.modal-close {
     position: absolute;
     top: 15px;
     right: 20px;
@@ -467,16 +435,29 @@ td:nth-child(7) {
     cursor: pointer;
 }
 
-.modal-close-icon:hover { color: #333; }
+.modal-close:hover { color: #333; }
 
-.modal-actions-custom {
+.modal-actions {
     display: flex;
     justify-content: center;
     gap: 15px;
     margin-top: 20px;
 }
 
-.btn-modal-custom {
+.modal-icon {
+    margin-bottom: 15px;
+}
+
+.modal-icon svg {
+    width: 50px;
+    height: 50px;
+}
+
+.modal-icon.success svg {
+    stroke: #28a745;
+}
+
+.btn-primary, .btn-secondary {
     padding: 10px 25px;
     border-radius: 6px;
     border: none;
@@ -486,23 +467,20 @@ td:nth-child(7) {
     transition: background 0.2s;
 }
 
-.btn-confirm-custom {
+.btn-primary {
     background-color: #0066cc;
     color: white;
 }
 
-.btn-confirm-custom:hover { background-color: #0056b3; }
+.btn-primary:hover { background-color: #0056b3; }
 
-.btn-cancel-custom {
+.btn-secondary {
     background-color: #e9ecef;
     color: #333;
 }
 
-.btn-cancel-custom:hover { background-color: #dde2e6; }
+.btn-secondary:hover { background-color: #dde2e6; }
 
-/* =========================================
-   FORMULÁRIOS MODERNOS (Inputs no Modal)
-   ========================================= */
 .input-moderno {
     width: 100%;
     padding: 10px 12px;
@@ -533,46 +511,165 @@ label {
     color: #444;
 }
 
-/* =========================================
-   CANAL SELECTOR
-   ========================================= */
-.canal-selector-container {
+
+/* --- ESTILO DOS BOTÕES DE SELEÇÃO (IGUAL AO PRINT) --- */
+.selector-container {
     display: flex;
     gap: 15px;
     margin-bottom: 15px;
 }
 
-.btn-canal-selector {
-    flex: 1;
+.selector-btn {
+    flex: 1; /* Faz os botões ocuparem espaço igual */
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 10px; /* Espaço entre ícone e texto */
     padding: 12px;
-    border: 1px solid #ced4da;
-    border-radius: 8px;
-    background-color: white;
-    cursor: pointer;
-    transition: all 0.2s;
+    border: 1px solid #ddd;
+    border-radius: 8px; /* Cantos arredondados */
+    background: white;
     color: #666;
-    font-weight: 500;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
 
-.btn-canal-selector:hover {
+.selector-btn:hover {
     background-color: #f8f9fa;
-    border-color: #b0b8c0;
+    border-color: #bbb;
 }
 
-
-.btn-canal-selector.active {
-    background-color: #e6f0ff;
-    border-color: #0066cc;
-    color: #0066cc;
-    font-weight: bold;
+/* Estado Ativo (Selecionado) */
+.selector-btn.active {
+    background-color: #f0f7ff; /* Fundo azul bem clarinho */
+    border: 2px solid #0066cc; /* Borda azul mais grossa */
+    color: #0066cc; /* Texto azul */
 }
 
-.btn-canal-selector svg {
+/* Ícones dentro dos botões */
+.selector-btn svg {
+    width: 24px;
+    height: 24px;
+    stroke: #666; /* Cor original cinza */
+    stroke-width: 2;
+    fill: none;
+    transition: stroke 0.2s;
+}
+
+/* Ícone fica azul quando ativo */
+.selector-btn.active svg {
+    stroke: #0066cc;
+}
+
+/* --- ÍCONES DA TABELA PRINCIPAL (CANAL) --- */
+.coluna-canal {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.icon-canal svg {
     width: 20px;
     height: 20px;
-    stroke: currentColor;
+    stroke: #555;
+    fill: none;
+    stroke-width: 2;
 }
+
+
+
+.hidden {
+    display: none !important;
+}
+
+.protocolo-header {
+    background: #f8f9fa;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+}
+
+.protocolo-header h4 {
+    margin: 0;
+    color: #0066cc;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.resolvido-por {
+    margin-top: 15px;
+    font-size: 0.9rem;
+    color: #666;
+    border-top: 1px solid #eee;
+    padding-top: 10px;
+}
+
+.timeline-wrapper {
+    position: relative;
+    padding-left: 10px;
+    margin-top: 15px;
+    max-height: 250px;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 6px;
+    padding: 15px;
+}
+
+.timeline-item {
+    position: relative;
+    padding-left: 30px;
+    padding-bottom: 20px;
+    border-left: 2px solid #e0e0e0;
+}
+
+.timeline-item:last-child {
+    border-left: 2px solid transparent;
+    padding-bottom: 0;
+}
+
+.timeline-icon {
+    position: absolute;
+    left: -11px;
+    top: 0;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border: 2px solid #0066cc;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #0066cc;
+    font-size: 10px;
+}
+
+.timeline-date {
+    font-size: 0.75rem;
+    color: #999;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.timeline-content {
+    background: #f8f9fa;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+}
+
+.modal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+table tbody td:nth-last-child(2), /* Coluna Status */
+table tbody td:last-child {       /* Coluna Ações */
+    text-align: center;
+    vertical-align: middle;
+}
+.modal-title.info { color: #0066cc; }
+.modal-icon.info svg { stroke: #0066cc; }

@@ -5,9 +5,11 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
 const admin = require('firebase-admin');
+const ExcelJS = require('exceljs');
 
 
 const ADMIN_EMAILS = process.env.ADMIN_EMAILS ? process.env.ADMIN_EMAILS.split(',').map(e => e.trim()) : [];
+const COLABORADOR_EMAILS = process.env.COLABORADOR_EMAILS ? process.env.COLABORADOR_EMAILS.split(',').map(e => e.trim()) : [];
 const CLIENT_EMAILS = process.env.CLIENT_EMAILS ? process.env.CLIENT_EMAILS.split(',').map(e => e.trim()) : [];
 
 
@@ -53,14 +55,19 @@ const verificarAuth = async (req, res, next) => {
         const isAllowedClient = CLIENT_EMAILS.includes(userEmail);
 
         if (!isMaida && !isAllowedClient) {
-            return res.status(403).json({ error: 'Domínio ou usuário não autorizado.' });
+            return res.status(403).json({ error: 'Acesso negado.' });
         }
 
-        let role = 'colaborador'; 
+        let role = 'restrito'; 
+
         if (ADMIN_EMAILS.includes(userEmail)) {
             role = 'admin';
+        } else if (COLABORADOR_EMAILS.includes(userEmail)) {
+            role = 'colaborador';
         } else if (isAllowedClient) {
             role = 'cliente';
+        } else if (isMaida) {
+            role = 'restrito'; 
         }
 
         req.user = { email: userEmail, role: role };
@@ -72,13 +79,16 @@ const verificarAuth = async (req, res, next) => {
 };
 
 
-
 app.get('/api/me', verificarAuth, (req, res) => {
     res.json(req.user);
 });
 
 
 app.get('/api/protocolos', verificarAuth, async (req, res) => {
+
+    if (req.user.role === 'restrito') {
+        return res.json([]); 
+    }
     const { data } = req.query;
     try {
         let query = `
@@ -104,78 +114,105 @@ app.get('/api/protocolos', verificarAuth, async (req, res) => {
 
 
 app.post('/api/protocolos', verificarAuth, async (req, res) => {
-    if (req.user.role === 'cliente') {
-        return res.status(403).json({ error: 'Clientes não podem criar protocolos.' });
-    }
+    const { 
+        numero, tipo, prestador, cnpj, assunto, observacao, canal, demandante,
+        tipo_tratativa, secretaria_encaminhada, tratativa_imediata 
+    } = req.body;
 
-    const { numero, tipo, prestador, cnpj, assunto, observacao, canal, demandante } = req.body;
-    try {
-        const query = `
-            INSERT INTO protocolos (numero_protocolo, email_registrante, tipo, prestador, cnpj, assunto, observacao, canal, demandante) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
-            RETURNING id
-        `;
-        const values = [numero, req.user.email, tipo, prestador, cnpj, assunto, observacao, canal, demandante];
-        await pool.query(query, values);
-        res.json({ success: true, message: 'Protocolo registrado!' });
-    } catch (error) {
-        console.error(error);
-        if (error.code === '23505') {
-            return res.status(409).json({ error: 'Este número de protocolo já existe.' });
-        }
-        res.status(500).json({ error: 'Erro ao registrar protocolo.' });
-    }
-});
-
-
-app.patch('/api/protocolos/:id', verificarAuth, async (req, res) => {
-    if (req.user.role === 'cliente') {
-        return res.status(403).json({ error: 'Acesso negado.' });
-    }
-
-    const { id } = req.params;
-    const { tratativa, status } = req.body;
-    const emailResponsavel = req.user.email;
-
+    const statusInicial = tipo_tratativa === 'imediato' ? 'resolvido' : 'aberto';
+    const secretariaFinal = tipo_tratativa === 'imediato' ? null : secretaria_encaminhada;
     const client = await pool.connect(); 
 
     try {
-        await client.query('BEGIN'); 
+        await client.query('BEGIN');
 
+        const queryProtocolo = `
+            INSERT INTO protocolos (
+                numero_protocolo, email_registrante, tipo, prestador, cnpj, assunto, 
+                observacao, canal, demandante, tipo_tratativa, secretaria_encaminhada, 
+                status, tratativa, email_tratativa, data_fechamento
+            ) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, 
+                ${tipo_tratativa === 'imediato' ? 'CURRENT_TIMESTAMP' : 'NULL'}) 
+            RETURNING id`;
+        
+        const valuesProt = [
+            numero, req.user.email, tipo, prestador, cnpj, assunto, 
+            observacao, canal, demandante, tipo_tratativa, secretariaFinal,
+            statusInicial, (tipo_tratativa === 'imediato' ? tratativa_imediata : null),
+            (tipo_tratativa === 'imediato' ? req.user.email : null)
+        ];
 
-        const buscaAtual = await client.query('SELECT status FROM protocolos WHERE id = $1', [id]);
-        if (buscaAtual.rows.length === 0) {
-            await client.query('ROLLBACK');
-            return res.status(404).json({ error: 'Protocolo não encontrado.' });
-        }
-        const statusAnterior = buscaAtual.rows[0].status;
+        const resProt = await client.query(queryProtocolo, valuesProt);
+        const novoId = resProt.rows[0].id;
 
+        // REGISTRA A PRIMEIRA MOVIMENTAÇÃO
+        const queryMov = `
+            INSERT INTO movimentacoes_protocolo (protocolo_id, secretaria_origem, secretaria_destino, usuario_responsavel, observacao)
+            VALUES ($1, $2, $3, $4, $5)`;
+        
+        await client.query(queryMov, [
+            novoId, 
+            'Triagem/Atendimento', 
+            secretariaFinal || 'Resolvido Imediato', 
+            req.user.email,
+            tipo_tratativa === 'imediato' ? 'Protocolo aberto e resolvido no ato.' : 'Encaminhamento inicial.'
+        ]);
 
-        const updateQuery = `
-            UPDATE protocolos 
-            SET 
-                tratativa = $1, 
-                status = $2::varchar, 
-                email_tratativa = $3, 
-                data_fechamento = CASE WHEN $2::varchar = 'resolvido' THEN CURRENT_TIMESTAMP ELSE data_fechamento END
-            WHERE id = $4
-        `;
-        await client.query(updateQuery, [tratativa, status, emailResponsavel, id]);
-
-
-        await client.query(`
-            INSERT INTO historico_protocolos 
-            (protocolo_id, responsavel_email, status_anterior, status_novo, tratativa_texto)
-            VALUES ($1, $2, $3, $4, $5)
-        `, [id, emailResponsavel, statusAnterior, status, tratativa]);
-
-        await client.query('COMMIT'); 
-        res.json({ success: true, message: 'Protocolo atualizado e histórico salvo.' });
-
+        await client.query('COMMIT');
+        res.json({ success: true, message: 'Protocolo e movimentação registrados!' });
     } catch (error) {
-        await client.query('ROLLBACK'); 
-        console.error("Erro ao tratar:", error);
-        res.status(500).json({ error: 'Erro ao atualizar tratativa.' });
+        await client.query('ROLLBACK');
+        console.error(error);
+        res.status(500).json({ error: 'Erro ao registrar.' });
+    } finally {
+        client.release();
+    }
+});
+
+app.patch('/api/protocolos/:id', verificarAuth, async (req, res) => {
+    const { id } = req.params;
+    const { status, tratativa, nova_secretaria } = req.body;
+    const client = await pool.connect();
+
+    try {
+        await client.query('BEGIN');
+
+        const protAtual = await client.query('SELECT secretaria_encaminhada FROM protocolos WHERE id = $1', [id]);
+        const secretariaOrigem = protAtual.rows[0].secretaria_encaminhada || 'Atendimento';
+
+        let queryUpdate = `UPDATE protocolos SET status = $1, tratativa = $2`;
+        let params = [status, tratativa, id];
+
+        if (status === 'resolvido') {
+            queryUpdate += `, data_fechamento = CURRENT_TIMESTAMP, email_tratativa = $4 WHERE id = $3`;
+            params.push(req.user.email);
+        } else if (nova_secretaria) {
+            queryUpdate += `, secretaria_encaminhada = $4 WHERE id = $3`;
+            params.push(nova_secretaria);
+        } else {
+            queryUpdate += ` WHERE id = $3`;
+        }
+
+        await client.query(queryUpdate, params);
+
+        const queryMov = `
+            INSERT INTO movimentacoes_protocolo (protocolo_id, secretaria_origem, secretaria_destino, usuario_responsavel, observacao)
+            VALUES ($1, $2, $3, $4, $5)`;
+        
+        await client.query(queryMov, [
+            id, 
+            secretariaOrigem, 
+            status === 'resolvido' ? 'Finalizado' : (nova_secretaria || secretariaOrigem), 
+            req.user.email,
+            tratativa || 'Mudança de status/setor.'
+        ]);
+
+        await client.query('COMMIT');
+        res.json({ success: true });
+    } catch (error) {
+        await client.query('ROLLBACK');
+        res.status(500).json({ error: 'Erro ao atualizar.' });
     } finally {
         client.release();
     }
@@ -254,6 +291,9 @@ app.get('/html/historico.html', (req, res) => {
 });
 
 app.get('/api/historico', verificarAuth, async (req, res) => {
+    if (req.user.role === 'restrito') {
+        return res.json({ data: [], total: 0, page: 1, totalPages: 0 });
+    }
     const { dataInicio, dataFim, tipo, assunto, page = 1, limit = 10 } = req.query;
     
     try {
@@ -321,8 +361,87 @@ app.get('/api/historico', verificarAuth, async (req, res) => {
         res.status(500).json({ error: 'Erro ao buscar histórico.' });
     }
 });
+app.get('/api/exportar-protocolos', verificarAuth, async (req, res) => {
+    if (req.user.role === 'restrito') {
+        return res.status(403).send("Acesso negado.");
+    }
+    try {
+        const query = `
+            SELECT 
+                numero_protocolo, data_registro, tipo, prestador, assunto, 
+                status, tipo_tratativa, secretaria_encaminhada, tratativa, 
+                email_registrante, email_tratativa, data_fechamento 
+            FROM vw_relatorio_protocolos 
+            ORDER BY data_registro DESC
+        `;
+        const result = await pool.query(query);
+
+        const dadosTratados = result.rows.map(row => {
+            const novaRow = { ...row };
+            Object.keys(novaRow).forEach(key => {
+                let valor = novaRow[key];
+                if (typeof valor === 'string' && valor.length > 0) {
+                    novaRow[key] = valor.charAt(0).toUpperCase() + valor.slice(1);
+                }
+            });
+            return novaRow;
+        });
+
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Protocolos');
+
+        worksheet.columns = [
+            { header: 'Protocolo', key: 'numero_protocolo', width: 20 },
+            { header: 'Data Registro', key: 'data_registro', width: 22 },
+            { header: 'Tipo', key: 'tipo', width: 15 },
+            { header: 'Prestador', key: 'prestador', width: 30 },
+            { header: 'Assunto', key: 'assunto', width: 25 },
+            { header: 'Status', key: 'status', width: 15 },
+            { header: 'Tratativa Tipo', key: 'tipo_tratativa', width: 18 },
+            { header: 'Secretaria', key: 'secretaria_encaminhada', width: 20 },
+            { header: 'Resolução/Tratativa', key: 'tratativa', width: 45 },
+            { header: 'Registrado por', key: 'email_registrante', width: 30 },
+            { header: 'Resolvido por', key: 'email_tratativa', width: 30 },
+            { header: 'Data Fechamento', key: 'data_fechamento', width: 22 }
+        ];
+
+        worksheet.addRows(dadosTratados);
+
+        worksheet.eachRow((row, rowNumber) => {
+            row.eachCell((cell) => {
+                cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                
+                if (rowNumber === 1) {
+                    cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+                    cell.fill = {
+                        type: 'pattern',
+                        pattern: 'solid',
+                        fgColor: { argb: 'FF0066CC' }
+                    };
+                }
+            });
+        });
+
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', 'attachment; filename=Relatorio_Protocolos_Senado.xlsx');
+
+        await workbook.xlsx.write(res);
+        res.end();
+    } catch (error) {
+        console.error('Erro ao exportar:', error);
+        res.status(500).send('Erro ao gerar planilha');
+    }
+});
 
 app.get('/api/dashboard-dados', verificarAuth, async (req, res) => {
+    if (req.user.role === 'restrito') {
+        return res.json({
+            graficoLinha: [],
+            rankingAbertura: [],
+            rankingTratativa: [],
+            rankingAssuntos: []
+        });
+    }
     try {
 
         const queryLinha = `
@@ -386,6 +505,28 @@ app.get('/api/dashboard-dados', verificarAuth, async (req, res) => {
 
 app.get('/dashboard', (req, res) => {
     res.redirect('/html/dashboard.html');
+});
+
+app.get('/api/protocolos/:id/movimentacoes', verificarAuth, async (req, res) => {
+    const { id } = req.params;
+    try {
+        const query = `
+            SELECT 
+                secretaria_origem, 
+                secretaria_destino, 
+                usuario_responsavel, 
+                observacao, 
+                to_char(data_movimentacao, 'DD/MM/YYYY HH24:MI') as data_formatada
+            FROM movimentacoes_protocolo 
+            WHERE protocolo_id = $1 
+            ORDER BY data_movimentacao DESC
+        `;
+        const result = await pool.query(query, [id]);
+        res.json(result.rows);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Erro ao buscar histórico' });
+    }
 });
 
 app.get('/html/dashboard.html', (req, res) => {

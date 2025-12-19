@@ -1,310 +1,488 @@
 const token = localStorage.getItem('maida_token');
 let userRole = 'guest';
 let filtroStatusAtual = null;
-let listaProtocolosAtual = []; // Variável para armazenar dados e usar no modal de detalhes
+let idEmResolucao = null;
 
 if (!token) window.location.href = '/';
+
+class ProtocoloManager {
+    constructor() {
+        this.apiBase = '/api';
+    }
+
+    async request(endpoint, options = {}) {
+        const currentToken = localStorage.getItem('maida_token');
+
+        if (!currentToken) {
+            console.warn("Sem token. Redirecionando...");
+            window.location.href = '/';
+            return; 
+        }
+
+        const defaultHeaders = {
+            'Authorization': `Bearer ${currentToken}`, 
+            'Content-Type': 'application/json'
+        };
+
+        const config = {
+            ...options,
+            headers: { ...defaultHeaders, ...options.headers }
+        };
+
+        try {
+            const response = await fetch(`${this.apiBase}${endpoint}`, config);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            return await response.json();
+        } catch (error) {
+            console.error('API Error:', error);
+            throw error;
+        }
+    }
+
+    async getProtocolos(dataFiltro = '') {
+        const endpoint = dataFiltro ? `/protocolos?data=${dataFiltro}` : '/protocolos';
+        return this.request(endpoint);
+    }
+
+    async getProtocolo(id) {
+        return this.request(`/protocolos/${id}`);
+    }
+
+    async getMovimentacoes(id) {
+        return this.request(`/protocolos/${id}/movimentacoes`);
+    }
+
+    async updateProtocolo(id, data) {
+        return this.request(`/protocolos/${id}`, {
+            method: 'PATCH',
+            body: JSON.stringify(data)
+        });
+    }
+
+    async createProtocolo(data) {
+        return this.request('/protocolos', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        });
+    }
+
+    async getProximoProtocolo() {
+        return this.request('/proximo-protocolo');
+    }
+
+    async getUsuario() {
+        return this.request('/me');
+    }
+}
+
+const protocoloManager = new ProtocoloManager();
 
 async function inicializar() {
     const hoje = new Date().toISOString().split('T')[0];
     document.getElementById('filtroData').value = hoje;
 
     try {
-        const response = await fetch('/api/me', {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        
-        if (!response.ok) throw new Error();
-
-        const user = await response.json();
+        const user = await protocoloManager.getUsuario();
         userRole = user.role;
         document.getElementById('user-display').innerText = user.email;
 
-        if (userRole === 'cliente') {
-            const btnNovo = document.getElementById('btnNovoProtocolo');
-            if(btnNovo) btnNovo.style.display = 'none';
+        if (userRole === 'restrito') {
+            bloquearInterfaceRestrita();
+            return; 
         }
 
         carregarProtocolos();
-    } catch (e) {
+    } catch (error) {
+        console.error(error);
         logout();
     }
 }
+function bloquearInterfaceRestrita() {
+    const navLinks = document.querySelector('.nav-links');
+    if (navLinks) navLinks.style.display = 'none';
 
+    const main = document.querySelector('main');
+    if (main) {
+        main.innerHTML = `
+            <div style="text-align: center; margin-top: 50px; padding: 40px; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+                <div style="color: #fbc02d; margin-bottom: 20px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                </div>
+                <h2 style="color: #333; margin-bottom: 10px;">Acesso Pendente</h2>
+                <p style="color: #666; font-size: 1.1rem;">Seu login foi realizado com sucesso, mas você ainda não possui permissão para visualizar os protocolos.</p>
+                <p style="color: #666; margin-top: 10px;">Solicite acesso ao administrador do sistema.</p>
+            </div>
+        `;
+    }
+    
+    const fab = document.getElementById('btnNovoProtocolo');
+    if(fab) fab.style.display = 'none';
+}
 async function carregarProtocolos() {
+    const lista = document.getElementById('listaProtocolos');
+    if (!lista) return;
+
     const dataFiltro = document.getElementById('filtroData').value;
-    const termoBusca = document.getElementById('buscaGeral').value.toLowerCase();
+    const busca = document.getElementById('buscaGeral').value.toLowerCase();
 
     try {
-        const res = await fetch(`/api/protocolos?data=${dataFiltro}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        
-        let dados = await res.json();
-        listaProtocolosAtual = dados; // Salva para uso nos modais
+        const protocolos = await protocoloManager.getProtocolos(dataFiltro);
+        lista.innerHTML = '';
 
-        if (termoBusca) {
-            dados = dados.filter(p => 
-                (p.numero_protocolo && p.numero_protocolo.toLowerCase().includes(termoBusca)) ||
-                (p.prestador && p.prestador.toLowerCase().includes(termoBusca)) ||
-                (p.demandante && p.demandante.toLowerCase().includes(termoBusca)) ||
-                (p.assunto && p.assunto.toLowerCase().includes(termoBusca))
-            );
-        }
-
-
-        const total = dados.length;
-        const abertos = dados.filter(p => p.status === 'aberto').length;
-        const andamento = dados.filter(p => p.status === 'em andamento').length;
-        const resolvido = dados.filter(p => p.status === 'resolvido').length;
-
-        document.getElementById('count-total').innerText = total;
-        document.getElementById('count-aberto').innerText = abertos;
-        document.getElementById('count-andamento').innerText = andamento;
-        document.getElementById('count-resolvido').innerText = resolvido;
-
-        const tbody = document.getElementById('listaProtocolos');
-        tbody.innerHTML = '';
-
-        if (dados.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 20px; color: #666;">Nenhum protocolo encontrado.</td></tr>';
-            return;
-        }
-
-        dados.forEach(p => {
-            if (filtroStatusAtual && p.status !== filtroStatusAtual) return;
-
-            const hora = new Date(p.data_registro).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-
-            const iconPhone = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>`;
-            const iconMail = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>`;
-            const canalIcone = p.canal === 'email' ? iconMail : iconPhone;
-
-            const cnpjValor = p.cnpj ? p.cnpj : (p.nu_cnpj || ""); 
-            const htmlCnpj = cnpjValor ? `<small style="color:#777; display:block; font-size:0.75rem;">${cnpjValor}</small>` : '';
-            
-
-            const htmlDemandante = p.demandante ? `<div style="font-size:0.8rem; color:#0066cc; margin-top:2px;">Solicitante: ${p.demandante}</div>` : '';
-
-            let htmlStatus;
-            let htmlAcao;
-
-
-            if (p.status === 'resolvido' || userRole === 'cliente') {
-
-                htmlStatus = `<span class="status-badge status-${p.status.replace(/\s+/g, '-')}" style="display:inline-block; padding: 6px 12px; font-size: 0.8rem;">${p.status.toUpperCase()}</span>`;
-                
-
-                htmlAcao = `
-                    <button class="btn-icon" onclick="verDetalhes(${p.id})" title="Ver Detalhes">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0066cc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                            <circle cx="12" cy="12" r="3"></circle>
-                        </svg>
-                    </button>
-                `;
-            } else {
-
-                const classeSelect = p.status === 'aberto' ? 'status-aberto' : 'status-em-andamento';
-                
-                htmlStatus = `
-                    <select onchange="alterarStatusDireto(${p.id}, this.value)" class="status-select ${classeSelect}">
-                        <option value="aberto" ${p.status === 'aberto' ? 'selected' : ''}>ABERTO</option>
-                        <option value="em andamento" ${p.status === 'em andamento' ? 'selected' : ''}>EM ANDAMENTO</option>
-                        <option value="resolvido" ${p.status === 'resolvido' ? 'selected' : ''}>RESOLVIDO</option>
-                    </select>
-                `;
-
-
-                htmlAcao = `
-                    <button class="btn-icon btn-resolver" onclick="abrirModalResolver(${p.id})" title="Resolver">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0066cc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                        </svg>
-                    </button>
-                `;
-            }
-
+        protocolos.forEach(protocolo => {
             const tr = document.createElement('tr');
-            
-            tr.innerHTML = `
-                <td>${hora}</td>
-                <td style="text-align:center;">${canalIcone}</td>
-                <td style="font-weight:bold;">${p.numero_protocolo}</td>
-                <td style="text-transform: capitalize;">${p.tipo}</td>
-                <td>
-                    ${p.prestador || 'Não inf.'}<br>
-                    ${htmlCnpj}
-                    ${htmlDemandante} </td>
-                <td style="text-transform: capitalize;">${p.assunto}</td>
-                <td>${htmlStatus}</td>
-                <td style="text-align:center;">${htmlAcao}</td>
-            `;
-            tbody.appendChild(tr);
+            tr.innerHTML = criarLinhaProtocolo(protocolo);
+            lista.appendChild(tr);
         });
 
+        atualizarContadores(protocolos);
     } catch (error) {
-        console.error("Erro ao carregar:", error);
+        console.error('Erro ao carregar protocolos:', error);
+    }
+}
+function formatarTexto(texto) {
+    if (!texto) return '-';
+    return texto.charAt(0).toUpperCase() + texto.slice(1);
+}
+
+function criarLinhaProtocolo(protocolo) {
+    const statusSelect = protocolo.status !== 'resolvido' 
+        ? criarSelectStatus(protocolo)
+        : `<span class="status-badge status-resolvido">${protocolo.status.toUpperCase()}</span>`;
+
+    const btnResolver = protocolo.status !== 'resolvido' ? criarBotaoResolver(protocolo.id) : '';
+
+    let iconeCanal = '';
+    if (protocolo.canal === 'email') {
+        iconeCanal = `<div class="icon-canal" title="Email"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></div>`;
+    } else {
+        iconeCanal = `<div class="icon-canal" title="Telefone"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg></div>`;
+    }
+
+    const horaRegistro = new Date(protocolo.data_registro).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+    const tipoFormatado = formatarTexto(protocolo.tipo);
+    const assuntoFormatado = formatarTexto(protocolo.assunto);
+
+    return `
+        <td>${horaRegistro}</td>
+        <td class="coluna-canal">${iconeCanal}</td>
+        <td><strong>${protocolo.numero_protocolo}</strong></td>
+        
+        <td>${tipoFormatado}</td>
+        
+        <td>
+            ${protocolo.prestador || '-'}
+            ${protocolo.demandante ? `<br><small style="color:#0066cc">Solicitante: ${protocolo.demandante}</small>` : ''}
+        </td>
+        
+        <td>${assuntoFormatado}</td>
+        
+        <td>
+            <div class="acoes-container">
+                ${statusSelect}
+            </div>
+        </td>
+
+        <td>
+            <div class="acoes-container">
+                ${btnResolver}
+                <button class="btn-acao btn-detalhes" onclick="verDetalhes(${protocolo.id})" title="Ver detalhes">
+                    <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                </button>
+            </div>
+        </td>
+    `;
+}
+
+function exibirModalFeedback(titulo, mensagem, tipo = 'success') {
+    const modal = document.getElementById('modalSucessoFechamento');
+    const titleEl = modal.querySelector('.modal-title');
+    const bodyEl = modal.querySelector('.modal-body');
+    const iconEl = modal.querySelector('.modal-icon');
+
+    titleEl.innerText = titulo;
+    bodyEl.innerHTML = mensagem;
+    
+    if (tipo === 'info') {
+        titleEl.className = 'modal-title info';
+        iconEl.className = 'modal-icon info';
+    } else {
+        titleEl.className = 'modal-title success';
+        iconEl.className = 'modal-icon success';
+    }
+
+    modal.style.display = 'flex';
+}
+function criarSelectStatus(protocolo) {
+    return `
+        <select onchange="alterarStatusDireto(${protocolo.id}, this.value)" class="status-select status-${protocolo.status.replace(/\s+/g, '-')}">
+            <option value="aberto" ${protocolo.status === 'aberto' ? 'selected' : ''}>ABERTO</option>
+            <option value="em andamento" ${protocolo.status === 'em andamento' ? 'selected' : ''}>EM ANDAMENTO</option>
+        </select>
+    `;
+}
+
+function criarBotaoResolver(id) {
+    return `
+        <button class="btn-acao btn-resolver" onclick="abrirModalResolucao(${id})" title="Encaminhar ou Resolver">
+            <svg viewBox="0 0 24 24"><path fill="currentColor" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+        </button>
+    `;
+}
+
+function atualizarContadores(protocolos) {
+    const contadores = {
+        total: protocolos.length,
+        aberto: protocolos.filter(p => p.status === 'aberto').length,
+        andamento: protocolos.filter(p => p.status === 'em andamento').length,
+        resolvido: protocolos.filter(p => p.status === 'resolvido').length
+    };
+
+    document.getElementById('count-total').textContent = contadores.total;
+    document.getElementById('count-aberto').textContent = contadores.aberto;
+    document.getElementById('count-andamento').textContent = contadores.andamento;
+    document.getElementById('count-resolvido').textContent = contadores.resolvido;
+}
+
+function selecionarTratativa(tipo) {
+    document.querySelectorAll('#modalNovo .selector-btn').forEach(btn => btn.classList.remove('active'));
+    
+    const btnSelecionado = document.getElementById(`btn-trat-${tipo}`);
+    if (btnSelecionado) {
+        btnSelecionado.classList.add('active');
+    }
+
+    document.getElementById('form-tipo-tratativa').value = tipo;
+
+    document.getElementById('group-imediato').classList.toggle('hidden', tipo !== 'imediato');
+    document.getElementById('group-encaminhamento').classList.toggle('hidden', tipo !== 'encaminhado');
+
+    if (tipo === 'encaminhado' && !document.getElementById('form-secretaria').value) {
+        document.getElementById('form-secretaria').value = 'Atendimento';
     }
 }
 
+async function verDetalhes(id) {
+    const modal = document.getElementById('modalVisualizar');
+    const elements = {
+        protocolo: document.getElementById('detalheProtocolo'),
+        tratativa: document.getElementById('detalheTratativa'),
+        resolvidoPor: document.getElementById('detalheResolvidoPor'),
+        historico: document.getElementById('detalheHistorico')
+    };
 
+    modal.style.display = 'flex';
 
+    try {
+        const [protocolos, movimentacoes] = await Promise.all([
+            protocoloManager.getProtocolos(),
+            protocoloManager.getMovimentacoes(id)
+        ]);
 
-function verDetalhes(id) {
-    const p = listaProtocolosAtual.find(item => item.id === id);
-    if (!p) return;
+        const protocolo = protocolos.find(p => p.id === id);
+        if (protocolo) {
+            exibirDetalhesProtocolo(protocolo, elements);
+        }
 
-    document.getElementById('view-protocolo').innerText = p.numero_protocolo;
-    document.getElementById('view-tratativa').innerText = p.tratativa || "Nenhuma resolução registrada.";
-    document.getElementById('view-responsavel').innerText = p.email_tratativa || "-";
+        exibirHistorico(movimentacoes, elements.historico);
+    } catch (error) {
+        console.error('Erro ao carregar detalhes:', error);
+        elements.historico.innerHTML = '<p style="color:red; padding:10px;">Erro ao carregar dados.</p>';
+    }
+}
+
+function exibirDetalhesProtocolo(protocolo, elements) {
+    elements.protocolo.textContent = `${protocolo.numero_protocolo} - ${protocolo.assunto}`;
+    elements.tratativa.value = protocolo.tratativa || "Nenhuma resolução final registrada.";
     
-    const dataFech = p.data_fechamento ? new Date(p.data_fechamento).toLocaleString('pt-BR') : "-";
-    document.getElementById('view-data').innerText = dataFech;
+    if (protocolo.email_tratativa) {
+        const dataFechamento = protocolo.data_fechamento 
+            ? new Date(protocolo.data_fechamento).toLocaleString() 
+            : '-';
+        elements.resolvidoPor.innerHTML = `<strong>Resolvido por:</strong> ${protocolo.email_tratativa} em ${dataFechamento}`;
+    } else {
+        elements.resolvidoPor.innerHTML = `<strong>Status:</strong> ${protocolo.status.toUpperCase()}`;
+    }
+}
 
-    document.getElementById('modalVisualizar').style.display = 'flex';
+function exibirHistorico(movimentacoes, container) {
+    if (!movimentacoes || movimentacoes.length === 0) {
+        container.innerHTML = '<p style="padding:10px; color:#777; font-style:italic;">Nenhuma movimentação registrada.</p>';
+        return;
+    }
+
+    const html = movimentacoes.map(m => `
+        <div class="timeline-item">
+            <div class="timeline-icon" style="border-color: ${m.secretaria_destino === 'Finalizado' || m.secretaria_destino === 'Resolvido Imediato' ? '#28a745' : '#0066cc'}">
+                ${m.secretaria_destino === 'Finalizado' || m.secretaria_destino === 'Resolvido Imediato' 
+                    ? '<svg viewBox="0 0 24 24" width="12" height="12"><path fill="#28a745" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>'
+                    : '<svg viewBox="0 0 24 24" width="12" height="12"><path fill="#0066cc" d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>'
+                }
+            </div>
+            <div class="timeline-date">${m.data_formatada}</div>
+            <div class="timeline-content">
+                <div style="margin-bottom:4px;">
+                    <span style="color:#666;">${m.secretaria_origem}</span> 
+                    <strong>➜</strong> 
+                    <strong style="color:#333;">${m.secretaria_destino}</strong>
+                </div>
+                <div style="font-style:italic; color:#555; font-size:0.8rem;">
+                    "${m.observacao || 'Sem observação'}"
+                </div>
+                <small style="color:#0066cc; display:block; margin-top:4px;">
+                    Resp: ${m.usuario_responsavel}
+                </small>
+            </div>
+        </div>
+    `).join('');
+
+    container.innerHTML = html;
 }
 
 async function alterarStatusDireto(id, novoStatus) {
     if (novoStatus === 'resolvido') {
         abrirModalResolver(id);
-        carregarProtocolos(); 
-        return; 
+        return;
     }
+
     try {
-        await fetch(`/api/protocolos/${id}`, {
-            method: 'PATCH',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}` 
-            },
-            body: JSON.stringify({ 
-                status: novoStatus, 
-                tratativa: `Status alterado manualmente para ${novoStatus}` 
-            })
+        await protocoloManager.updateProtocolo(id, {
+            status: novoStatus,
+            tratativa: `Status alterado manualmente para ${novoStatus}`
         });
-        carregarProtocolos(); 
-    } catch (e) {
+        carregarProtocolos();
+    } catch (error) {
         alert("Erro ao atualizar status");
     }
 }
 
-let idEmResolucao = null;
 function abrirModalResolver(id) {
     idEmResolucao = id;
-    document.getElementById('resolucao-texto').value = ''; 
+    document.getElementById('resolucao-texto').value = '';
     document.getElementById('modalResolver').style.display = 'flex';
 }
 
 async function confirmarResolucao() {
-    if(!idEmResolucao) return;
-    const textoResolucao = document.getElementById('resolucao-texto').value;
-    if(!textoResolucao.trim()) {
+    if (!idEmResolucao) return;
+
+    const textoResolucao = document.getElementById('resolucao-texto').value.trim();
+    if (!textoResolucao) {
         alert("Por favor, descreva a solução para finalizar o protocolo.");
         return;
     }
-    try {
-        const btn = document.getElementById('btnConfirmarResolucao');
-        btn.innerText = "Finalizando...";
-        btn.disabled = true;
 
-        const res = await fetch(`/api/protocolos/${idEmResolucao}`, {
-            method: 'PATCH',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}` 
-            },
-            body: JSON.stringify({ status: 'resolvido', tratativa: textoResolucao })
+    const btn = document.getElementById('btnConfirmarResolucao');
+    btn.innerText = "Finalizando...";
+    btn.disabled = true;
+
+    try {
+        await protocoloManager.updateProtocolo(idEmResolucao, {
+            status: 'resolvido',
+            tratativa: textoResolucao
         });
 
-        if (res.ok) {
-            fecharModal('modalResolver'); 
-            carregarProtocolos();         
-            document.getElementById('modalSucessoFechamento').style.display = 'flex';
-        } else {
-            alert("Erro ao finalizar protocolo.");
-        }
-    } catch (e) {
-        console.error(e);
-        alert("Erro de conexão ao resolver protocolo");
+        fecharModal('modalResolver');
+        carregarProtocolos();
+        document.getElementById('modalSucessoFechamento').style.display = 'flex';
+    } catch (error) {
+        alert("Erro ao finalizar protocolo.");
     } finally {
-        const btn = document.getElementById('btnConfirmarResolucao');
-        if(btn) { btn.innerText = "Confirmar Resolução"; btn.disabled = false; }
+        btn.innerText = "Confirmar Resolução";
+        btn.disabled = false;
     }
 }
 
 async function salvarProtocolo() {
-    const numero = document.getElementById('form-numero').value;
-    const tipo = document.getElementById('form-tipo').value;
-    const prestador = document.getElementById('form-prestador').value;
-    const cnpj = document.getElementById('form-cnpj').value;
-    const assunto = document.getElementById('form-assunto').value;
-    const observacao = document.getElementById('form-obs').value;
-    const canal = document.getElementById('form-canal').value;
-    const demandante = document.getElementById('form-demandante').value;
+    const formData = coletarDadosFormulario();
 
-    if (!numero || numero === 'Gerando...' || !prestador || !assunto) {
-        alert("Preencha os campos obrigatórios e aguarde o número.");
-        return;
-    }
+    if (!validarFormulario(formData)) return;
 
-    const payload = { numero, tipo, prestador, cnpj, assunto, observacao, canal, demandante };
+    const btnSalvar = document.querySelector('#modalNovo .btn-primary');
+    btnSalvar.innerText = "Salvando...";
+    btnSalvar.disabled = true;
 
     try {
-        const btnSalvar = document.querySelector('#modalNovo .btn-confirm-custom');
-        btnSalvar.innerText = "Salvando...";
-        btnSalvar.disabled = true;
-
-        const res = await fetch('/api/protocolos', {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}` 
-            },
-            body: JSON.stringify(payload)
-        });
-
-        if (res.ok) {
-            fecharModal('modalNovo');
-            document.getElementById('texto-protocolo-criado').innerText = numero;
-            document.getElementById('modalSucesso').style.display = 'flex';
-            carregarProtocolos();
-            
-            document.getElementById('form-numero').value = '';
-            document.getElementById('form-prestador').value = '';
-            document.getElementById('form-cnpj').value = '';
-            document.getElementById('form-demandante').value = '';
-            document.getElementById('form-assunto').value = '';
-            document.getElementById('form-obs').value = '';
-        } else {
-            const erro = await res.json();
-            alert(erro.error || "Erro ao salvar.");
-        }
-    } catch (e) {
-        console.error(e);
-        alert("Erro de conexão.");
+        await protocoloManager.createProtocolo(formData);
+        
+        fecharModal('modalNovo');
+        document.getElementById('texto-protocolo-criado').innerText = formData.numero;
+        document.getElementById('modalSucesso').style.display = 'flex';
+        carregarProtocolos();
+        limparFormulario();
+    } catch (error) {
+        alert("Erro ao salvar protocolo.");
     } finally {
-        const btnSalvar = document.querySelector('#modalNovo .btn-confirm-custom');
-        if(btnSalvar) { btnSalvar.innerText = "Confirmar Registro"; btnSalvar.disabled = false; }
+        btnSalvar.innerText = "Confirmar Registro";
+        btnSalvar.disabled = false;
     }
 }
 
+function coletarDadosFormulario() {
+    return {
+        numero: document.getElementById('form-numero').value,
+        tipo: document.getElementById('form-tipo').value,
+        prestador: document.getElementById('form-prestador').value,
+        cnpj: document.getElementById('form-cnpj').value,
+        assunto: document.getElementById('form-assunto').value,
+        observacao: document.getElementById('form-obs').value,
+        canal: document.getElementById('form-canal').value,
+        demandante: document.getElementById('form-demandante').value,
+        tipo_tratativa: document.getElementById('form-tipo-tratativa').value,
+        secretaria_encaminhada: document.getElementById('form-secretaria').value,
+        tratativa_imediata: document.getElementById('form-tratativa-imediata').value
+    };
+}
+
+function validarFormulario(data) {
+    if (!data.tipo_tratativa) {
+        alert("Selecione se o atendimento é Imediato ou Encaminhado.");
+        return false;
+    }
+
+    if (data.tipo_tratativa === 'imediato' && !data.tratativa_imediata.trim()) {
+        alert("Para resolução imediata, preencha a descrição da solução.");
+        return false;
+    }
+
+    if (!data.numero || !data.prestador || !data.assunto) {
+        alert("Preencha os campos obrigatórios.");
+        return false;
+    }
+
+    return true;
+}
+
+function limparFormulario() {
+    const campos = ['form-prestador', 'form-cnpj', 'form-demandante', 'form-assunto', 'form-obs', 'form-tratativa-imediata'];
+    campos.forEach(id => document.getElementById(id).value = '');
+}
+
 function selecionarCanal(tipo) {
-    document.getElementById('btn-canal-telefone').classList.remove('active');
-    document.getElementById('btn-canal-email').classList.remove('active');
-    document.getElementById(`btn-canal-${tipo}`).classList.add('active');
+    document.querySelectorAll('#modalNovo .selector-btn').forEach(btn => btn.classList.remove('active'));
+    
+    const btnSelecionado = document.getElementById(`btn-canal-${tipo}`);
+    if (btnSelecionado) {
+        btnSelecionado.classList.add('active');
+    }
+    
     document.getElementById('form-canal').value = tipo;
 }
 
 function filtrarStatus(status) {
     filtroStatusAtual = status;
     document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
-    if (status === null) document.getElementById('card-total-box').classList.add('active');
-    else if (status === 'aberto') document.getElementById('card-aberto-box').classList.add('active');
-    else if (status === 'em andamento') document.getElementById('card-andamento-box').classList.add('active');
-    else if (status === 'resolvido') document.getElementById('card-resolvido-box').classList.add('active');
+    
+    const cardMap = {
+        null: 'card-total-box',
+        'aberto': 'card-aberto-box',
+        'em andamento': 'card-andamento-box',
+        'resolvido': 'card-resolvido-box'
+    };
+
+    const cardId = cardMap[status];
+    if (cardId) document.getElementById(cardId).classList.add('active');
+    
     carregarProtocolos();
 }
 
@@ -313,19 +491,85 @@ async function abrirModalNovo() {
     const inputNumero = document.getElementById('form-numero');
     inputNumero.value = "Gerando...";
     inputNumero.disabled = true;
+
     try {
-        const res = await fetch('/api/proximo-protocolo', { headers: { 'Authorization': `Bearer ${token}` } });
-        if (res.ok) {
-            const data = await res.json();
-            inputNumero.value = data.protocolo;
-        } else {
-            inputNumero.value = ""; inputNumero.placeholder = "Erro ao gerar.";
-        }
-    } catch (error) { inputNumero.value = "Erro de conexão"; }
+        const data = await protocoloManager.getProximoProtocolo();
+        inputNumero.value = data.protocolo;
+    } catch (error) {
+        inputNumero.value = "";
+        inputNumero.placeholder = "Erro ao gerar.";
+    } finally {
+        inputNumero.disabled = false;
+    }
 }
 
-function fecharModal(id) { document.getElementById(id).style.display = 'none'; }
-function logout() { localStorage.clear(); window.location.href = '/'; }
+function alternarCamposResolucao() {
+    const acao = document.getElementById('acao-tratativa').value;
+    const groupSecretaria = document.getElementById('group-nova-secretaria');
+    const labelDesc = document.getElementById('label-desc-tratativa');
+
+    if (acao === 'resolver') {
+        groupSecretaria.classList.add('hidden');
+        labelDesc.innerText = "Descreva a Solução Final (Encerramento):";
+    } else {
+        groupSecretaria.classList.remove('hidden');
+        labelDesc.innerText = "Observação do Encaminhamento:";
+    }
+}
+
+async function confirmarMovimentacao() {
+    const id = document.getElementById('modalResolucao').dataset.protocoloId;
+    const acao = document.getElementById('acao-tratativa').value;
+    const tratativa = document.getElementById('texto-tratativa').value.trim();
+    const novaSecretaria = document.getElementById('form-nova-secretaria').value;
+
+    if (acao === 'resolver' && !tratativa) {
+        alert("Para finalizar o protocolo, é obrigatório descrever a solução.");
+        return;
+    }
+
+    const payload = {
+        status: acao === 'resolver' ? 'resolvido' : 'em andamento',
+        tratativa: tratativa,
+        nova_secretaria: acao === 'encaminhar' ? novaSecretaria : null
+    };
+
+    try {
+        await protocoloManager.updateProtocolo(id, payload);
+        fecharModal('modalResolucao');
+        carregarProtocolos();
+        
+        // AQUI ESTÁ A MUDANÇA: Substitui o alert pelo Modal
+        if (acao === 'resolver') {
+            exibirModalFeedback('Protocolo Finalizado!', 'O status foi alterado para <strong>Concluído</strong> e a tratativa foi registrada.');
+        } else {
+            exibirModalFeedback('Protocolo Encaminhado!', `O protocolo foi movido para o setor <strong>${novaSecretaria}</strong> com sucesso.`);
+        }
+
+    } catch (error) {
+        console.error("Erro na movimentação:", error);
+        alert("Erro ao processar a movimentação.");
+    }
+}
+
+function abrirModalResolucao(id) {
+    const modal = document.getElementById('modalResolucao');
+    modal.dataset.protocoloId = id;
+    modal.style.display = 'flex';
+    
+    document.getElementById('acao-tratativa').value = 'encaminhar';
+    document.getElementById('texto-tratativa').value = '';
+    alternarCamposResolucao();
+}
+
+function fecharModal(id) {
+    document.getElementById(id).style.display = 'none';
+}
+
+function logout() {
+    localStorage.clear();
+    window.location.href = '/';
+}
 
 document.getElementById('filtroData').addEventListener('change', carregarProtocolos);
 document.getElementById('buscaGeral').addEventListener('keyup', carregarProtocolos);
