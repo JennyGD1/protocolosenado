@@ -44,9 +44,9 @@ nav .logosis img {
 
 .nav-links {
     flex-grow: 1;
-    margin-left: 40px; 
+    margin-left: 40px;
     display: flex;
-    gap: 20px; 
+    gap: 20px;
 }
 
 .nav-links a {
@@ -68,7 +68,6 @@ nav .logosis img {
     font-weight: bold;
     border-bottom: 2px solid white;
 }
-
 
 nav .user-info {
     font-size: 0.9rem;
