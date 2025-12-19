@@ -41,7 +41,10 @@ nav .logosis img {
     width: auto;
 }
 
-
+nav .logosis {
+    display: flex;
+    align-items: center;
+}
 .nav-links {
     flex-grow: 1;
     margin-left: 40px;
