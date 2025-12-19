@@ -112,7 +112,7 @@ app.post('/api/protocolos', verificarAuth, async (req, res) => {
     try {
         const query = `
             INSERT INTO protocolos (numero_protocolo, email_registrante, tipo, prestador, cnpj, assunto, observacao, canal, demandante) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
             RETURNING id
         `;
         const values = [numero, req.user.email, tipo, prestador, cnpj, assunto, observacao, canal, demandante];
