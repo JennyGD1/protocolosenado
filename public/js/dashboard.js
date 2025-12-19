@@ -67,7 +67,7 @@ function renderizarLinha(dados) {
                     backgroundColor: '#0066cc',
                     tension: 0.3, 
                     fill: false,
-                    pointRadius: 5, // Ponto maior para caber o número perto
+                    pointRadius: 5, 
                     pointHoverRadius: 7
                 },
                 {
@@ -95,7 +95,7 @@ function renderizarLinha(dados) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            layout: { padding: { top: 20 } }, // Espaço para o número não cortar
+            layout: { padding: { top: 20 } }, 
             plugins: { 
                 legend: { position: 'top', align: 'end' },
 
@@ -104,18 +104,18 @@ function renderizarLinha(dados) {
                     anchor: 'center',
                     backgroundColor: 'white',
                     borderRadius: 4,
-                    color: (ctx) => ctx.dataset.borderColor, // Cor igual a da linha
+                    color: (ctx) => ctx.dataset.borderColor,
                     font: { weight: 'bold', size: 11 },
-                    formatter: (value) => value > 0 ? value : '' // Só mostra se > 0
+                    formatter: (value) => value > 0 ? value : '' 
                 }
             },
             scales: { 
                 y: { 
-                    display: false, // Remove legenda numérica vertical
-                    grid: { display: false } // Remove grade
+                    display: false, 
+                    grid: { display: false } 
                 }, 
                 x: { 
-                    grid: { display: false } // Remove grade
+                    grid: { display: false }
                 } 
             }
         }
@@ -144,10 +144,10 @@ function renderizarBarrasHorizontal(id, dados, label, cor) {
             }]
         },
         options: {
-            indexAxis: 'y', // Horizontal
+            indexAxis: 'y',
             responsive: true,
             maintainAspectRatio: false,
-            layout: { padding: { right: 50 } }, // Espaço para o texto
+            layout: { padding: { right: 50 } }, 
             plugins: { 
                 legend: { display: false },
                 datalabels: {
@@ -163,8 +163,8 @@ function renderizarBarrasHorizontal(id, dados, label, cor) {
                 }
             },
             scales: { 
-                x: { display: false, grid: { display: false } }, // Remove eixo X e grade
-                y: { grid: { display: false } } // Remove grade Y
+                x: { display: false, grid: { display: false } }, 
+                y: { grid: { display: false } }
             }
         }
     });
@@ -181,7 +181,7 @@ function renderizarColunasAssuntos(id, dados) {
     const totalGeral = valores.reduce((a, b) => a + b, 0);
 
     new Chart(ctx, {
-        type: 'bar', // Vertical padrão
+        type: 'bar',
         data: {
             labels: labels,
             datasets: [{
@@ -196,7 +196,7 @@ function renderizarColunasAssuntos(id, dados) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            layout: { padding: { top: 25 } }, // Espaço para o número no topo
+            layout: { padding: { top: 25 } }, 
             plugins: { 
                 legend: { display: false },
                 datalabels: {
@@ -207,7 +207,7 @@ function renderizarColunasAssuntos(id, dados) {
                     formatter: (value) => {
                         if(totalGeral === 0) return '0';
                         const pct = ((value / totalGeral) * 100).toFixed(0);
-                        return `${value}\n(${pct}%)`; // Quebra linha
+                        return `${value}\n(${pct}%)`; 
                     }
                 }
             },

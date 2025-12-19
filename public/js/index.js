@@ -539,7 +539,6 @@ async function confirmarMovimentacao() {
         fecharModal('modalResolucao');
         carregarProtocolos();
         
-        // AQUI ESTÁ A MUDANÇA: Substitui o alert pelo Modal
         if (acao === 'resolver') {
             exibirModalFeedback('Protocolo Finalizado!', 'O status foi alterado para <strong>Concluído</strong> e a tratativa foi registrada.');
         } else {

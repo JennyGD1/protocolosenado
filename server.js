@@ -146,7 +146,6 @@ app.post('/api/protocolos', verificarAuth, async (req, res) => {
         const resProt = await client.query(queryProtocolo, valuesProt);
         const novoId = resProt.rows[0].id;
 
-        // REGISTRA A PRIMEIRA MOVIMENTAÇÃO
         const queryMov = `
             INSERT INTO movimentacoes_protocolo (protocolo_id, secretaria_origem, secretaria_destino, usuario_responsavel, observacao)
             VALUES ($1, $2, $3, $4, $5)`;

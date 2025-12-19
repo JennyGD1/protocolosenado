@@ -1,7 +1,7 @@
 const token = localStorage.getItem('maida_token');
 let paginaAtual = 1;
 let totalPaginas = 1;
-let dadosAtuais = []; // NOVA VARIÁVEL PARA ARMAZENAR OS DADOS DA TELA
+let dadosAtuais = [];
 
 if (!token) window.location.href = '/';
 
