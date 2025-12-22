@@ -11,9 +11,6 @@ body {
     min-height: 100vh;
 }
 
-/* =========================================
-   NAVBAR PADRÃO (Copie para todos os CSS)
-   ========================================= */
 nav {
     background-color: #0066cc;
     color: white;
@@ -32,10 +29,7 @@ nav .logo {
     gap: 10px;
 }
 
-nav .logo img {
-    height: 40px;
-    width: auto;
-}
+nav .logo img,
 nav .logosis img {
     height: 40px;
     width: auto;
@@ -45,6 +39,7 @@ nav .logosis {
     display: flex;
     align-items: center;
 }
+
 .nav-links {
     flex-grow: 1;
     margin-left: 40px;
@@ -124,7 +119,8 @@ main {
     color: #555;
 }
 
-.filtros-container input, .filtros-container select {
+.filtros-container input,
+.filtros-container select {
     padding: 10px 12px;
     border: 1px solid #ced4da;
     border-radius: 6px;
@@ -214,17 +210,18 @@ tbody tr:last-child td {
 .status-aberto { background-color: #ffebee; color: #b71c1c; }
 .status-em-andamento { background-color: #fff8e1; color: #f57f17; }
 .status-resolvido { background-color: #e8f5e9; color: #388e3c; }
+
 td svg {
     vertical-align: middle;
     display: inline-block;
 }
 
-
-th:nth-child(2), td:nth-child(2) {
+th:nth-child(2),
+td:nth-child(2) {
     width: 60px;
     text-align: center;
 }
-/* --- ESTILO DO BOTÃO DE DETALHES (IGUAL AO INDEX) --- */
+
 .btn-acao {
     display: inline-flex;
     align-items: center;
@@ -238,7 +235,7 @@ th:nth-child(2), td:nth-child(2) {
     transition: all 0.2s ease;
     padding: 0;
     color: #555;
-    margin: 0 auto; /* Garante centralização se estiver em bloco */
+    margin: 0 auto;
 }
 
 .btn-acao:hover {
@@ -246,7 +243,6 @@ th:nth-child(2), td:nth-child(2) {
     transform: translateY(-1px);
 }
 
-/* Estilo específico azul para o botão de detalhes (olho) */
 .btn-detalhes {
     color: #0066cc;
     border-color: #0066cc;
@@ -262,7 +258,6 @@ th:nth-child(2), td:nth-child(2) {
     height: 18px;
     pointer-events: none;
 }
-/* --- ESTILOS DO MODAL (ADICIONAR AO FINAL DE HISTORICO.CSS) --- */
 
 .modal-overlay {
     position: fixed;
@@ -271,7 +266,7 @@ th:nth-child(2), td:nth-child(2) {
     width: 100%;
     height: 100%;
     background: rgba(0,0,0,0.5);
-    display: none; /* O JS muda isso para flex */
+    display: none;
     justify-content: center;
     align-items: center;
     z-index: 2000;
@@ -288,6 +283,11 @@ th:nth-child(2), td:nth-child(2) {
     overflow-y: auto;
     box-shadow: 0 10px 25px rgba(0,0,0,0.2);
     animation: fadeIn 0.2s ease-out;
+}
+
+.modal-content.large {
+    max-width: 800px;
+    width: 95%;
 }
 
 @keyframes fadeIn {
@@ -310,136 +310,16 @@ th:nth-child(2), td:nth-child(2) {
 
 .protocolo-header {
     background: #f8f9fa;
-    padding: 10px;
-    border-radius: 6px;
-    margin-bottom: 15px;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
     border-left: 4px solid #0066cc;
 }
 
-.protocolo-header h4 { margin: 0; color: #0066cc; }
-
-.form-group { margin-bottom: 15px; }
-
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: 600;
-    font-size: 0.85rem;
-    color: #444;
-}
-
-.input-moderno {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ced4da;
-    border-radius: 6px;
-    background-color: #f9f9f9; /* Fundo cinza pois é readonly */
-    color: #555;
-    resize: none;
-}
-
-.resolvido-por {
-    margin-top: 15px;
-    font-size: 0.9rem;
-    color: #666;
-    border-top: 1px solid #eee;
-    padding-top: 10px;
-}
-
-.modal-actions {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 20px;
-}
-
-.btn-primary {
-    background-color: #0066cc;
-    color: white;
-    padding: 8px 20px;
-    border-radius: 6px;
-    border: none;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-.btn-primary:hover {
-    background-color: #0056b3;
-}
-
-/* Timeline (Linha do Tempo) */
-.timeline-wrapper {
-    position: relative;
-    padding-left: 10px;
-    max-height: 250px;
-    overflow-y: auto;
-    background: #fff;
-    border: 1px solid #eee;
-    border-radius: 6px;
-    padding: 15px;
-}
-
-.timeline-item {
-    position: relative;
-    padding-left: 30px;
-    padding-bottom: 20px;
-    border-left: 2px solid #e0e0e0;
-}
-
-.timeline-item:last-child {
-    border-left: 2px solid transparent;
-    padding-bottom: 0;
-}
-
-.timeline-icon {
-    position: absolute;
-    left: -11px;
-    top: 0;
-    width: 20px;
-    height: 20px;
-    background: white;
-    border: 2px solid #0066cc;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.timeline-date { font-size: 0.75rem; color: #999; font-weight: 600; margin-bottom: 4px; }
-
-.timeline-content {
-    background: #f8f9fa;
-    padding: 8px 12px;
-    border-radius: 4px;
-    font-size: 0.85rem;
-}
-.observation-box {
-    background-color: #f0f4f8;
-    border-radius: 6px;
-    padding: 8px 12px;
-    margin-top: 6px;
-    border-left: 4px solid #0066cc; 
-    font-size: 0.85rem;
-    color: #333;
-    line-height: 1.4;
-}
-
-.observation-box strong {
-    color: #004080; 
-}
-.protocolo-clicavel {
+.protocolo-header h4 {
+    margin: 0;
     color: #0066cc;
-    text-decoration: underline;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-.protocolo-clicavel:hover {
-    color: #004499;
-}
-/* --- REPLICA DO MODAL DO INDEX --- */
-.modal-content.large {
-    max-width: 800px;
-    width: 95%;
+    font-size: 1.1rem;
 }
 
 .detalhes-grid {
@@ -474,6 +354,8 @@ th:nth-child(2), td:nth-child(2) {
     font-size: 0.9rem;
     line-height: 1.4;
     resize: vertical;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 #detalheRelatoInicial {
@@ -488,18 +370,152 @@ th:nth-child(2), td:nth-child(2) {
     color: #155724;
 }
 
+.detalhe-coluna#colunaStatus {
+    grid-column: 1 / -1;
+    margin-top: 10px;
+}
+
+.detalhe-coluna#colunaStatus > div {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+}
+
 .historico-fullwidth {
     grid-column: 1 / -1;
     margin-top: 10px;
 }
 
-@media (max-width: 768px) {
-    .detalhes-grid {
-        grid-template-columns: 1fr;
-    }
+.timeline-wrapper {
+    position: relative;
+    padding: 15px;
+    margin-top: 10px;
+    max-height: 300px;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 8px;
 }
 
-/* --- ESTILO DO MODAL RELATO RÁPIDO --- */
+.timeline-item {
+    position: relative;
+    padding-left: 30px;
+    padding-bottom: 20px;
+    border-left: 2px solid #e0e0e0;
+}
+
+.timeline-item:last-child {
+    border-left: 2px solid transparent;
+    padding-bottom: 0;
+}
+
+.timeline-icon {
+    position: absolute;
+    left: -11px;
+    top: 0;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border: 2px solid #0066cc;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.timeline-date {
+    font-size: 0.75rem;
+    color: #999;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.timeline-content {
+    background: #f8f9fa;
+    padding: 10px 15px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+}
+
+.observation-box {
+    background-color: #f0f4f8;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-top: 6px;
+    border-left: 4px solid #0066cc;
+    font-size: 0.85rem;
+    color: #333;
+    line-height: 1.4;
+}
+
+.observation-box strong {
+    color: #004080;
+}
+
+.protocolo-clicavel {
+    color: #0066cc;
+    text-decoration: underline;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.protocolo-clicavel:hover {
+    color: #004499;
+}
+
+.resolvido-por {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+.btn-primary {
+    background-color: #0066cc;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 0.95rem;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #444;
+}
+
+.input-moderno {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    background-color: #f9f9f9;
+    color: #555;
+    resize: none;
+}
+
 #modalRelatoRapido .modal-content {
     max-width: 500px;
     width: 95%;
@@ -530,4 +546,15 @@ th:nth-child(2), td:nth-child(2) {
     border: 1px solid #e0e0e0;
     max-height: 300px;
     overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+    .detalhes-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .modal-content.large {
+        width: 98%;
+        padding: 20px 15px;
+    }
 }
