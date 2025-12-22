@@ -82,11 +82,12 @@ function renderizarTabela(dados) {
         const classeStatus = `status-${p.status.replace(/\s+/g, '-')}`;
         
         const tr = document.createElement('tr');
-        
         tr.innerHTML = `
             <td>${dataFormatada}</td>
             <td style="text-align:center;" title="${tituloCanal}">${canalIcone}</td>
-            <td style="font-weight:bold;">${p.numero_protocolo}</td>
+            <td class="protocolo-clicavel" onclick="verRelatoInicial(${p.id})">
+                <strong>${p.numero_protocolo}</strong>
+            </td>
             <td style="text-transform: capitalize;">${p.tipo}</td>
             <td>${p.demandante || '-'}</td>
             <td>${p.prestador}${htmlCnpj}</td>
@@ -136,68 +137,79 @@ async function verDetalhes(id) {
 }
 function exibirHistorico(movimentacoes) {
     const container = document.getElementById('detalheHistorico');
-    const txtTratativa = document.getElementById('detalheTratativa');
+    const txtRelatoInicial = document.getElementById('detalheTratativa');
     const divResolvido = document.getElementById('detalheResolvidoPor');
 
-    if (!movimentacoes || movimentacoes.length === 0) return;
-
-    const ultimaAcao = movimentacoes[0];
-    const abertura = movimentacoes[movimentacoes.length - 1];
-    if (ultimaAcao.secretaria_destino === 'Finalizado' || ultimaAcao.secretaria_destino === 'Resolvido Imediato') {
-        txtTratativa.value = ultimaAcao.observacao;
-    } else {
-        txtTratativa.value = "Protocolo ainda em andamento...";
-    }
-    
     if (!movimentacoes || movimentacoes.length === 0) {
         container.innerHTML = '<p style="padding:10px; color:#777;">Nenhuma movimentação.</p>';
         return;
     }
 
+    const abertura = movimentacoes[movimentacoes.length - 1];
     const ultima = movimentacoes[0];
+
+    txtRelatoInicial.value = (abertura.observacao || "").replace('Abertura/Relato: ', '');
+
     if (ultima.secretaria_destino === 'Finalizado' || ultima.secretaria_destino === 'Resolvido Imediato') {
-         txtTratativa.value = ultima.observacao;
-         divResolvido.innerHTML = `<strong>Resolvido por:</strong> ${ultima.usuario_responsavel} em ${ultima.data_formatada}`;
+        divResolvido.innerHTML = `<strong>Resolvido por:</strong> ${ultima.usuario_responsavel} em ${ultima.data_formatada}`;
     } else {
-         txtTratativa.value = "Em andamento...";
-         divResolvido.innerHTML = "";
+        divResolvido.innerHTML = "";
     }
 
     const html = movimentacoes.map(m => {
-    const isResolvido = m.secretaria_destino === 'Finalizado' || m.secretaria_destino === 'Resolvido Imediato';
-    
-    const textoFormatado = (m.observacao || 'Sem observação')
-        .replace(/(Abertura\/Relato:|Tratativa Final:|Solução Final:|Encaminhamento:)/g, '<strong>$1</strong>');
+        const isResolvido = m.secretaria_destino === 'Finalizado' || m.secretaria_destino === 'Resolvido Imediato';
+        const textoFormatado = (m.observacao || 'Sem observação')
+            .replace(/(Abertura\/Relato:|Tratativa Final:|Solução Final:|Encaminhamento:)/g, '<strong>$1</strong>');
 
-    return `
-        <div class="timeline-item">
-            <div class="timeline-icon" style="border-color: ${isResolvido ? '#28a745' : '#0066cc'}">
-               ${isResolvido 
-                    ? '<svg viewBox="0 0 24 24" width="12" height="12"><path fill="#28a745" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>'
-                    : '<svg viewBox="0 0 24 24" width="12" height="12"><path fill="#0066cc" d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>'
-                }
-            </div>
-            <div class="timeline-date">${m.data_formatada}</div>
-            <div class="timeline-content">
-                <div style="margin-bottom:4px;">
-                    <span style="color:#666;">${m.secretaria_origem}</span> 
-                    <strong>➜</strong> 
-                    <strong style="color:#333;">${m.secretaria_destino}</strong>
+        return `
+            <div class="timeline-item">
+                <div class="timeline-icon" style="border-color: ${isResolvido ? '#28a745' : '#0066cc'}">
+                   ${isResolvido 
+                        ? '<svg viewBox="0 0 24 24" width="12" height="12"><path fill="#28a745" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>'
+                        : '<svg viewBox="0 0 24 24" width="12" height="12"><path fill="#0066cc" d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>'
+                    }
                 </div>
-                <div class="observation-box">
-                    ${textoFormatado}
+                <div class="timeline-date">${m.data_formatada}</div>
+                <div class="timeline-content">
+                    <div style="margin-bottom:4px;">
+                        <span style="color:#666;">${m.secretaria_origem}</span> 
+                        <strong>➜</strong> 
+                        <strong style="color:#333;">${m.secretaria_destino}</strong>
+                    </div>
+                    <div class="observation-box">
+                        ${textoFormatado}
+                    </div>
+                    <small style="color:#0066cc; display:block; margin-top:4px;">
+                        Resp: ${m.usuario_responsavel}
+                    </small>
                 </div>
-                <small style="color:#0066cc; display:block; margin-top:4px;">
-                    Resp: ${m.usuario_responsavel}
-                </small>
             </div>
-        </div>
-    `;
-}).join('');
+        `;
+    }).join('');
 
     container.innerHTML = html;
 }
-
+async function verRelatoInicial(id) {
+    const modal = document.getElementById('modalRelatoRapido');
+    const texto = document.getElementById('textoRelatoRapido');
+    const titulo = document.getElementById('tituloRelatoRapido');
+    
+    try {
+        const res = await fetch(`/api/protocolos/${id}/movimentacoes`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const movimentacoes = await res.json();
+        
+        if (movimentacoes.length > 0) {
+            const abertura = movimentacoes[movimentacoes.length - 1];
+            titulo.innerText = `Demanda Inicial`;
+            texto.innerText = abertura.observacao.replace('Abertura/Relato: ', '');
+            modal.style.display = 'flex';
+        }
+    } catch (e) {
+        console.error("Erro ao carregar relato", e);
+    }
+}
 function fecharModal(id) {
     document.getElementById(id).style.display = 'none';
 }

@@ -160,30 +160,26 @@ function criarLinhaProtocolo(protocolo) {
     }
 
     const horaRegistro = new Date(protocolo.data_registro).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-
     const tipoFormatado = formatarTexto(protocolo.tipo);
     const assuntoFormatado = formatarTexto(protocolo.assunto);
 
     return `
         <td>${horaRegistro}</td>
         <td class="coluna-canal">${iconeCanal}</td>
-        <td><strong>${protocolo.numero_protocolo}</strong></td>
-        
+        <td class="protocolo-clicavel" onclick="verRelatoInicial(${protocolo.id})">
+            <strong>${protocolo.numero_protocolo}</strong>
+        </td>
         <td>${tipoFormatado}</td>
-        
         <td>
             ${protocolo.prestador || '-'}
             ${protocolo.demandante ? `<br><small style="color:#0066cc">Solicitante: ${protocolo.demandante}</small>` : ''}
         </td>
-        
         <td>${assuntoFormatado}</td>
-        
         <td>
             <div class="acoes-container">
                 ${statusSelect}
             </div>
         </td>
-
         <td>
             <div class="acoes-container">
                 ${btnResolver}
@@ -194,7 +190,6 @@ function criarLinhaProtocolo(protocolo) {
         </td>
     `;
 }
-
 function exibirModalFeedback(titulo, mensagem, tipo = 'success') {
     const modal = document.getElementById('modalSucessoFechamento');
     const titleEl = modal.querySelector('.modal-title');
@@ -267,7 +262,9 @@ async function verDetalhes(id) {
     const modal = document.getElementById('modalVisualizar');
     const elements = {
         protocolo: document.getElementById('detalheProtocolo'),
-        tratativa: document.getElementById('detalheTratativa'),
+        relatoInicial: document.getElementById('detalheRelatoInicial'),
+        resolucaoFinal: document.getElementById('detalheResolucaoFinal'),
+        resolucaoFinalGroup: document.getElementById('groupResolucaoFinal'),
         resolvidoPor: document.getElementById('detalheResolvidoPor'),
         historico: document.getElementById('detalheHistorico')
     };
@@ -282,43 +279,112 @@ async function verDetalhes(id) {
 
         const protocolo = protocolos.find(p => p.id === id);
         if (protocolo) {
-            exibirDetalhesProtocolo(protocolo, elements);
+            exibirDetalhesProtocolo(protocolo, elements, movimentacoes);
         }
 
-        exibirHistorico(movimentacoes, elements.historico);
+        exibirHistorico(movimentacoes, elements.historico, protocolo);
     } catch (error) {
         console.error('Erro ao carregar detalhes:', error);
         elements.historico.innerHTML = '<p style="color:red; padding:10px;">Erro ao carregar dados.</p>';
     }
 }
-
-function exibirDetalhesProtocolo(protocolo, elements) {
+function exibirDetalhesProtocolo(protocolo, elements, movimentacoes) {
     elements.protocolo.textContent = `${protocolo.numero_protocolo} - ${protocolo.assunto}`;
-    elements.tratativa.value = protocolo.tratativa || "Nenhuma resolução final registrada.";
+    
+    // Encontrar o relato inicial
+    let relatoInicial = "Nenhum relato inicial registrado.";
+    if (movimentacoes && movimentacoes.length > 0) {
+        const abertura = movimentacoes.find(m => 
+            m.observacao && m.observacao.includes('Abertura/Relato:')
+        );
+        if (abertura) {
+            relatoInicial = abertura.observacao.replace('Abertura/Relato: ', '');
+        } else {
+            relatoInicial = movimentacoes[movimentacoes.length - 1].observacao || relatoInicial;
+        }
+    }
+    
+    elements.relatoInicial.value = relatoInicial;
+    
+    // Obter elementos do DOM
+    const container = document.getElementById('detalhesContainer');
+    const colunaResolucao = document.getElementById('colunaResolucao');
+    const colunaStatus = document.getElementById('colunaStatus');
+    
+    // Mostrar/ocultar resolução final e status atual
+    if (protocolo.status === 'resolvido' && protocolo.tratativa) {
+        // Protocolo resolvido: mostrar duas colunas
+        container.classList.add('duas-colunas');
+        colunaResolucao.style.display = 'flex';
+        colunaStatus.style.display = 'none';
+        elements.resolucaoFinal.value = protocolo.tratativa;
+    } else {
+        // Protocolo não resolvido: mostrar apenas uma coluna
+        container.classList.remove('duas-colunas');
+        colunaResolucao.style.display = 'none';
+        colunaStatus.style.display = 'flex';
+    }
     
     if (protocolo.email_tratativa) {
         const dataFechamento = protocolo.data_fechamento 
             ? new Date(protocolo.data_fechamento).toLocaleString() 
             : '-';
-        elements.resolvidoPor.innerHTML = `<strong>Resolvido por:</strong> ${protocolo.email_tratativa} em ${dataFechamento}`;
+        elements.resolvidoPor.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#28a745" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+                <div>
+                    <strong>Resolvido por:</strong> ${protocolo.email_tratativa}<br>
+                    <small style="color: #666;">em ${dataFechamento}</small>
+                </div>
+            </div>
+        `;
     } else {
-        elements.resolvidoPor.innerHTML = `<strong>Status:</strong> ${protocolo.status.toUpperCase()}`;
+        const statusIcon = protocolo.status === 'aberto' ? 
+            `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f57f17" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>` :
+            `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0066cc" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>`;
+        
+        elements.resolvidoPor.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 10px;">
+                ${statusIcon}
+                <div>
+                    <strong>Status Atual:</strong> ${protocolo.status.toUpperCase()}
+                </div>
+            </div>
+        `;
     }
 }
 
-function exibirHistorico(movimentacoes, container) {
+function exibirHistorico(movimentacoes, container, protocolo) {
     if (!movimentacoes || movimentacoes.length === 0) {
         container.innerHTML = '<p style="padding:10px; color:#777; font-style:italic;">Nenhuma movimentação registrada.</p>';
         return;
     }
 
-    const html = movimentacoes.map(m => {
-    const isResolvido = m.secretaria_destino === 'Finalizado' || m.secretaria_destino === 'Resolvido Imediato';
-    
-    const textoFormatado = (m.observacao || 'Sem observação')
-        .replace(/(Abertura\/Relato:|Tratativa Final:|Solução Final:|Encaminhamento:)/g, '<strong>$1</strong>');
+    const historicoFiltrado = movimentacoes.filter(m => 
+        !(protocolo.status === 'resolvido' && 
+          protocolo.tratativa && 
+          m.observacao && 
+          m.observacao.includes('Tratativa Final:'))
+    );
 
-    return `
+    const html = historicoFiltrado.map(m => {
+        const isResolvido = m.secretaria_destino === 'Finalizado' || 
+                           m.secretaria_destino === 'Resolvido Imediato';
+        
+        const textoFormatado = (m.observacao || 'Sem observação')
+            .replace(/(Abertura\/Relato:|Solução Final:|Encaminhamento:)/g, '<strong>$1</strong>');
+
+        return `
         <div class="timeline-item">
             <div class="timeline-icon" style="border-color: ${isResolvido ? '#28a745' : '#0066cc'}">
                ${isResolvido 
@@ -341,8 +407,8 @@ function exibirHistorico(movimentacoes, container) {
                 </small>
             </div>
         </div>
-    `;
-}).join('');
+        `;
+    }).join('');
 
     container.innerHTML = html;
 }
@@ -440,7 +506,61 @@ function coletarDadosFormulario() {
         tratativa_imediata: document.getElementById('form-tratativa-imediata').value
     };
 }
-
+async function verRelatoInicial(id) {
+    const modal = document.getElementById('modalRelatoRapido');
+    const texto = document.getElementById('textoRelatoRapido');
+    const titulo = document.getElementById('tituloRelatoRapido');
+    const numeroProtocolo = document.getElementById('numeroProtocoloRapido');
+    const dataRegistro = document.getElementById('dataRegistroRapido');
+    
+    try {
+        const res = await fetch(`/api/protocolos/${id}/movimentacoes`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const movimentacoes = await res.json();
+        
+        // Buscar também os dados do protocolo para pegar número e data
+        const protocolos = await protocoloManager.getProtocolos();
+        const protocolo = protocolos.find(p => p.id === id);
+        
+        if (protocolo) {
+            numeroProtocolo.textContent = protocolo.numero_protocolo;
+            const data = new Date(protocolo.data_registro);
+            dataRegistro.textContent = data.toLocaleDateString('pt-BR') + ' ' + data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        }
+        
+        if (movimentacoes.length > 0) {
+            // Encontrar a abertura (última movimentação ou a que contém "Abertura/Relato:")
+            let abertura;
+            for (let i = movimentacoes.length - 1; i >= 0; i--) {
+                if (movimentacoes[i].observacao && movimentacoes[i].observacao.includes('Abertura/Relato:')) {
+                    abertura = movimentacoes[i];
+                    break;
+                }
+            }
+            
+            // Se não encontrou específico, pega a última
+            if (!abertura && movimentacoes.length > 0) {
+                abertura = movimentacoes[movimentacoes.length - 1];
+            }
+            
+            if (abertura) {
+                titulo.innerText = `Relato do Protocolo`;
+                const relatoLimpo = abertura.observacao.replace('Abertura/Relato: ', '').replace('Encaminhamento: ', '');
+                texto.innerText = relatoLimpo;
+                modal.style.display = 'flex';
+            }
+        } else {
+            // Caso não tenha movimentações, mostrar mensagem
+            texto.innerText = "Nenhum relato inicial encontrado para este protocolo.";
+            modal.style.display = 'flex';
+        }
+    } catch (e) {
+        console.error("Erro ao carregar relato", e);
+        texto.innerText = "Erro ao carregar o relato do protocolo. Tente novamente.";
+        modal.style.display = 'flex';
+    }
+}
 function validarFormulario(data) {
     if (!data.tipo_tratativa) {
         alert("Selecione se o atendimento é Imediato ou Encaminhado.");
@@ -517,7 +637,7 @@ function alternarCamposResolucao() {
 
     if (acao === 'resolver') {
         groupSecretaria.classList.add('hidden');
-        labelDesc.innerText = "Descreva a Solução Final (Encerramento):";
+        labelDesc.innerText = "Descrição da Resolução:";
     } else {
         groupSecretaria.classList.remove('hidden');
         labelDesc.innerText = "Observação do Encaminhamento:";

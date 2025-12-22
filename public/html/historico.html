@@ -134,6 +134,27 @@
             </div>
         </div>
     </div>
+    <div class="modal-body">
+        <label style="font-weight: bold; color: #0066cc;">Relato Inicial do Cliente (Demanda):</label>
+        <textarea id="detalheTratativa" readonly style="background: #f9f9f9; border: 1px solid #ddd;"></textarea>
+        
+        <div id="detalheResolvidoPor" style="margin-top: 10px; font-size: 0.9rem; color: #28a745;"></div>
+        
+        <label style="font-weight: bold; margin-top: 20px; display: block;">Linha do Tempo e Tratativas:</label>
+        <div id="detalheHistorico" class="timeline-container"></div>
+    </div>
+
+    <div id="modalRelatoRapido" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3 id="tituloRelatoRapido" style="margin:0; font-size: 1.1rem;">Relato do Protocolo</h3>
+                <span class="close" onclick="fecharModal('modalRelatoRapido')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p id="textoRelatoRapido" style="line-height: 1.5; color: #333; white-space: pre-wrap;"></p>
+            </div>
+        </div>
+    </div>
 
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>

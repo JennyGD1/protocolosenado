@@ -253,33 +253,81 @@
     </div>
 
     <div id="modalVisualizar" class="modal-overlay">
-        <div class="modal-content">
+     <div class="modal-content large">
             <span class="modal-close" onclick="fecharModal('modalVisualizar')">&times;</span>
             
-            <h3>Detalhes da Resolução</h3>
+            <h3 style="margin-bottom: 20px;">Detalhes do Protocolo</h3>
             
-            <div class="protocolo-header">
-                <h4 id="detalheProtocolo"></h4>
+            <div class="protocolo-header" style="margin-bottom: 15px;">
+                <h4 id="detalheProtocolo" style="margin: 0;"></h4>
             </div>
 
-            <div class="form-group">
-                <label>O que foi feito (Tratativa Final):</label>
-                <textarea id="detalheTratativa" class="input-moderno" rows="3" readonly></textarea>
+            <div class="detalhes-grid" id="detalhesContainer">
+                <div class="detalhe-coluna">
+                    <label style="color: #0066cc; display: flex; align-items: center; gap: 8px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0066cc" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                        <strong>Demanda</strong>
+                    </label>
+                    <textarea id="detalheRelatoInicial" readonly></textarea>
+                </div>
+
+                <div class="detalhe-coluna" id="colunaResolucao" style="display: none;">
+                    <label style="color: #28a745; display: flex; align-items: center; gap: 8px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#28a745" stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                        <strong>Descrição da Resolução</strong>
+                    </label>
+                    <textarea id="detalheResolucaoFinal" readonly></textarea>
+                </div>
+
+                <div class="detalhe-coluna" id="colunaStatus" style="display: none; grid-column: 1 / -1;">
+                    <label style="color: #6c757d; display: flex; align-items: center; gap: 8px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6c757d" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                        <strong>Status Atual</strong>
+                    </label>
+                    <div style="background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; text-align: center;">
+                        <div style="color: #6c757d; margin-bottom: 10px;">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#6c757d" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                        </div>
+                        <div style="font-weight: 600; color: #495057; margin-bottom: 5px;">Protocolo em andamento</div>
+                        <small style="color: #868e96;">Sem resolução final registrada</small>
+                    </div>
+                </div>
+
+                <div class="historico-fullwidth">
+                    <label style="color: #333; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        <strong>Histórico de Movimentações</strong>
+                    </label>
+                    <div id="detalheHistorico" class="timeline-wrapper"></div>
+                </div>
             </div>
 
-            <div class="form-group">
-                <label>Histórico Completo (Linha do Tempo):</label>
-                <div id="detalheHistorico" class="timeline-wrapper"></div>
-            </div>
+            <div class="resolvido-por" id="detalheResolvidoPor" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;"></div>
 
-            <div class="resolvido-por" id="detalheResolvidoPor"></div>
-
-            <div class="modal-actions">
+            <div class="modal-actions" style="margin-top: 20px;">
                 <button class="btn-primary" onclick="fecharModal('modalVisualizar')">Fechar</button>
             </div>
         </div>
     </div>
-
     <div id="modalResolucao" class="modal-overlay">
         <div class="modal-content">
             <span class="modal-close" onclick="fecharModal('modalResolucao')">&times;</span>
@@ -360,6 +408,47 @@
             </div>
         </div>
     </div>
+
+    <div id="modalRelatoRapido" class="modal-overlay">
+    <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="background-color: #f0f8ff; padding: 8px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0066cc" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                </div>
+                <div>
+                    <h3 id="tituloRelatoRapido" style="margin: 0; font-size: 1.1rem; color: #0066cc;">Relato do Protocolo</h3>
+                    <small id="numeroProtocoloRapido" style="color: #666; font-size: 0.85rem;"></small>
+                </div>
+            </div>
+            <span class="modal-close" onclick="fecharModal('modalRelatoRapido')" style="font-size: 1.5rem; color: #999; cursor: pointer;">&times;</span>
+        </div>
+        
+        <div class="modal-body" style="padding: 15px; background-color: #f8fafc; border-radius: 8px; border: 1px solid #e9ecef;">
+            <div style="margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                <span style="font-weight: 600; color: #0066cc; font-size: 0.9rem;">Demanda Inicial do Cliente</span>
+            </div>
+            <div id="textoRelatoRapido" style="color: #333; line-height: 1.5; font-size: 0.95rem; white-space: pre-wrap; padding: 10px; background-color: white; border-radius: 6px; border: 1px solid #e0e0e0; max-height: 300px; overflow-y: auto;"></div>
+        </div>
+        
+        <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+            <div style="color: #666; font-size: 0.85rem;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" style="vertical-align: middle; margin-right: 5px;">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <span id="dataRegistroRapido"></span>
+            </div>
+            <button class="btn-primary" onclick="fecharModal('modalRelatoRapido')" style="padding: 8px 20px; font-size: 0.9rem;">Fechar</button>
+        </div>
+    </div>
+</div>
 
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>

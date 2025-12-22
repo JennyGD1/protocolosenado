@@ -413,16 +413,26 @@ th:nth-child(2), td:nth-child(2) {
     font-size: 0.85rem;
 }
 .observation-box {
-    background-color: #f0f4f8; /* Azul bem claro/cinza */
+    background-color: #f0f4f8;
     border-radius: 6px;
     padding: 8px 12px;
     margin-top: 6px;
-    border-left: 4px solid #0066cc; /* Barra lateral para destaque */
+    border-left: 4px solid #0066cc; 
     font-size: 0.85rem;
     color: #333;
     line-height: 1.4;
 }
 
 .observation-box strong {
-    color: #004080; /* Cor um pouco mais escura para o negrito */
+    color: #004080; 
+}
+.protocolo-clicavel {
+    color: #0066cc;
+    text-decoration: underline;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.protocolo-clicavel:hover {
+    color: #004499;
 }
