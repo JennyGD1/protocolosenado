@@ -5,6 +5,9 @@ let dadosAtuais = [];
 
 if (!token) window.location.href = '/';
 
+function fecharModal(id) {
+    document.getElementById(id).style.display = 'none';
+}
 async function inicializar() {
     try {
         const response = await fetch('/api/me', {
@@ -118,7 +121,7 @@ async function verDetalhes(id) {
 
     document.getElementById('detalheRelatoInicial').value = "";
     document.getElementById('detalheResolucaoFinal').value = "";
-    document.getElementById('detalheHistorico').innerHTML = "Carregando histórico...";
+    document.getElementById('detalheHistorico').innerHTML = '<p style="padding:10px; color:#666;">Carregando...</p>';
     document.getElementById('detalheResolvidoPor').innerHTML = "";
     
     modal.style.display = 'flex';
@@ -127,18 +130,43 @@ async function verDetalhes(id) {
         const resMov = await fetch(`/api/protocolos/${id}/movimentacoes`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
+        
+        if (!resMov.ok) {
+            throw new Error(`Erro na API: ${resMov.status}`);
+        }
+        
         const movimentacoes = await resMov.json();
         
-        const resProt = await fetch(`/api/protocolos/${id}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const protocoloCompleto = await resProt.json();
+        let protocoloCompleto = protocolo || {};
+        
+        try {
+            const resProt = await fetch(`/api/protocolos/${id}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            if (resProt.ok) {
+                const dadosProt = await resProt.json();
+                protocoloCompleto = { ...protocoloCompleto, ...dadosProt };
+            }
+        } catch (protError) {
+            console.warn("Não foi possível buscar dados adicionais do protocolo:", protError);
+        }
         
         exibirDetalhesCompletos(movimentacoes, protocoloCompleto);
 
     } catch (error) {
-        console.error(error);
-        document.getElementById('detalheHistorico').innerText = "Erro ao carregar detalhes.";
+        console.error("Erro ao carregar detalhes:", error);
+        document.getElementById('detalheHistorico').innerHTML = `
+            <div style="padding:20px; text-align:center; color:#dc3545;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#dc3545" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                <p>Erro ao carregar os detalhes.</p>
+                <small>${error.message}</small>
+            </div>
+        `;
     }
 }
 
@@ -248,10 +276,21 @@ async function verRelatoInicial(id) {
     const numeroProtocolo = document.getElementById('numeroProtocoloRapido');
     const dataRegistro = document.getElementById('dataRegistroRapido');
     
+    texto.innerText = "Carregando...";
+    numeroProtocolo.textContent = "";
+    dataRegistro.textContent = "";
+    
+    modal.style.display = 'flex';
+
     try {
         const res = await fetch(`/api/protocolos/${id}/movimentacoes`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
+        
+        if (!res.ok) {
+            throw new Error(`Erro: ${res.status}`);
+        }
+        
         const movimentacoes = await res.json();
         
         const protocolo = dadosAtuais.find(p => p.id === id);
@@ -259,10 +298,11 @@ async function verRelatoInicial(id) {
         if (protocolo) {
             numeroProtocolo.textContent = protocolo.numero_protocolo;
             const data = new Date(protocolo.data_registro);
-            dataRegistro.textContent = data.toLocaleDateString('pt-BR') + ' ' + data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            dataRegistro.textContent = data.toLocaleDateString('pt-BR') + ' ' + 
+                                     data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute:'2-digit' });
         }
         
-        if (movimentacoes.length > 0) {
+        if (movimentacoes && movimentacoes.length > 0) {
             let abertura;
             for (let i = movimentacoes.length - 1; i >= 0; i--) {
                 if (movimentacoes[i].observacao && movimentacoes[i].observacao.includes('Abertura/Relato:')) {
@@ -277,18 +317,21 @@ async function verRelatoInicial(id) {
             
             if (abertura) {
                 titulo.innerText = `Relato do Protocolo`;
-                const relatoLimpo = abertura.observacao.replace('Abertura/Relato: ', '').replace('Encaminhamento: ', '');
+                const relatoLimpo = abertura.observacao
+                    .replace('Abertura/Relato: ', '')
+                    .replace('Encaminhamento: ', '')
+                    .trim();
                 texto.innerText = relatoLimpo;
-                modal.style.display = 'flex';
+            } else {
+                texto.innerText = "Nenhum relato disponível.";
             }
         } else {
-            texto.innerText = "Nenhum relato inicial encontrado para este protocolo.";
-            modal.style.display = 'flex';
+            texto.innerText = "Nenhuma movimentação registrada.";
         }
     } catch (e) {
         console.error("Erro ao carregar relato", e);
         texto.innerText = "Erro ao carregar o relato do protocolo. Tente novamente.";
-        modal.style.display = 'flex';
+        titulo.innerText = "Erro";
     }
 }
 
