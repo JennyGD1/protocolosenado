@@ -146,24 +146,40 @@ app.post('/api/protocolos', verificarAuth, async (req, res) => {
         const resProt = await client.query(queryProtocolo, valuesProt);
         const novoId = resProt.rows[0].id;
 
-        const queryMov = `
+        const queryMovAbertura = `
             INSERT INTO movimentacoes_protocolo (protocolo_id, secretaria_origem, secretaria_destino, usuario_responsavel, observacao)
             VALUES ($1, $2, $3, $4, $5)`;
         
-        await client.query(queryMov, [
+        await client.query(queryMovAbertura, [
             novoId, 
             'Triagem/Atendimento', 
-            secretariaFinal || 'Resolvido Imediato', 
+            tipo_tratativa === 'imediato' ? 'Resolvido Imediato' : (secretariaFinal || 'Encaminhado'), 
             req.user.email,
-            tipo_tratativa === 'imediato' ? 'Protocolo aberto e resolvido no ato.' : 'Encaminhamento inicial.'
+            `Abertura/Relato: ${observacao}`
         ]);
 
+        if (tipo_tratativa === 'imediato') {
+            const queryMovFechamento = `
+                INSERT INTO movimentacoes_protocolo (protocolo_id, secretaria_origem, secretaria_destino, usuario_responsavel, observacao)
+                VALUES ($1, $2, $3, $4, $5)`;
+            
+            await client.query(queryMovFechamento, [
+                novoId, 
+                'Resolvido Imediato', 
+                'Finalizado', 
+                req.user.email,
+                `Tratativa Final: ${tratativa_imediata}` 
+            ]);
+        }
+
         await client.query('COMMIT');
-        res.json({ success: true, message: 'Protocolo e movimentação registrados!' });
+        
+        res.status(201).json({ success: true, id: novoId });
+
     } catch (error) {
         await client.query('ROLLBACK');
-        console.error(error);
-        res.status(500).json({ error: 'Erro ao registrar.' });
+        console.error("Erro ao salvar protocolo:", error);
+        res.status(500).json({ error: 'Erro ao salvar protocolo.' });
     } finally {
         client.release();
     }
@@ -204,7 +220,7 @@ app.patch('/api/protocolos/:id', verificarAuth, async (req, res) => {
             secretariaOrigem, 
             status === 'resolvido' ? 'Finalizado' : (nova_secretaria || secretariaOrigem), 
             req.user.email,
-            tratativa || 'Mudança de status/setor.'
+            status === 'resolvido' ? `Solução Final: ${tratativa}` : `Encaminhamento: ${tratativa}`
         ]);
 
         await client.query('COMMIT');
@@ -518,7 +534,7 @@ app.get('/api/protocolos/:id/movimentacoes', verificarAuth, async (req, res) => 
                 to_char(data_movimentacao, 'DD/MM/YYYY HH24:MI') as data_formatada
             FROM movimentacoes_protocolo 
             WHERE protocolo_id = $1 
-            ORDER BY data_movimentacao DESC
+            ORDER BY data_movimentacao DESC, id DESC 
         `;
         const result = await pool.query(query, [id]);
         res.json(result.rows);

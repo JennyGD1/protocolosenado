@@ -138,6 +138,16 @@ function exibirHistorico(movimentacoes) {
     const container = document.getElementById('detalheHistorico');
     const txtTratativa = document.getElementById('detalheTratativa');
     const divResolvido = document.getElementById('detalheResolvidoPor');
+
+    if (!movimentacoes || movimentacoes.length === 0) return;
+
+    const ultimaAcao = movimentacoes[0];
+    const abertura = movimentacoes[movimentacoes.length - 1];
+    if (ultimaAcao.secretaria_destino === 'Finalizado' || ultimaAcao.secretaria_destino === 'Resolvido Imediato') {
+        txtTratativa.value = ultimaAcao.observacao;
+    } else {
+        txtTratativa.value = "Protocolo ainda em andamento...";
+    }
     
     if (!movimentacoes || movimentacoes.length === 0) {
         container.innerHTML = '<p style="padding:10px; color:#777;">Nenhuma movimentação.</p>';
@@ -153,10 +163,16 @@ function exibirHistorico(movimentacoes) {
          divResolvido.innerHTML = "";
     }
 
-    const html = movimentacoes.map(m => `
+    const html = movimentacoes.map(m => {
+    const isResolvido = m.secretaria_destino === 'Finalizado' || m.secretaria_destino === 'Resolvido Imediato';
+    
+    const textoFormatado = (m.observacao || 'Sem observação')
+        .replace(/(Abertura\/Relato:|Tratativa Final:|Solução Final:|Encaminhamento:)/g, '<strong>$1</strong>');
+
+    return `
         <div class="timeline-item">
-            <div class="timeline-icon" style="border-color: ${m.secretaria_destino === 'Finalizado' ? '#28a745' : '#0066cc'}">
-               ${m.secretaria_destino === 'Finalizado' 
+            <div class="timeline-icon" style="border-color: ${isResolvido ? '#28a745' : '#0066cc'}">
+               ${isResolvido 
                     ? '<svg viewBox="0 0 24 24" width="12" height="12"><path fill="#28a745" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>'
                     : '<svg viewBox="0 0 24 24" width="12" height="12"><path fill="#0066cc" d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>'
                 }
@@ -168,15 +184,16 @@ function exibirHistorico(movimentacoes) {
                     <strong>➜</strong> 
                     <strong style="color:#333;">${m.secretaria_destino}</strong>
                 </div>
-                <div style="font-style:italic; color:#555; font-size:0.8rem;">
-                    "${m.observacao || 'Sem observação'}"
+                <div class="observation-box">
+                    ${textoFormatado}
                 </div>
                 <small style="color:#0066cc; display:block; margin-top:4px;">
                     Resp: ${m.usuario_responsavel}
                 </small>
             </div>
         </div>
-    `).join('');
+    `;
+}).join('');
 
     container.innerHTML = html;
 }

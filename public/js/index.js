@@ -312,10 +312,16 @@ function exibirHistorico(movimentacoes, container) {
         return;
     }
 
-    const html = movimentacoes.map(m => `
+    const html = movimentacoes.map(m => {
+    const isResolvido = m.secretaria_destino === 'Finalizado' || m.secretaria_destino === 'Resolvido Imediato';
+    
+    const textoFormatado = (m.observacao || 'Sem observação')
+        .replace(/(Abertura\/Relato:|Tratativa Final:|Solução Final:|Encaminhamento:)/g, '<strong>$1</strong>');
+
+    return `
         <div class="timeline-item">
-            <div class="timeline-icon" style="border-color: ${m.secretaria_destino === 'Finalizado' || m.secretaria_destino === 'Resolvido Imediato' ? '#28a745' : '#0066cc'}">
-                ${m.secretaria_destino === 'Finalizado' || m.secretaria_destino === 'Resolvido Imediato' 
+            <div class="timeline-icon" style="border-color: ${isResolvido ? '#28a745' : '#0066cc'}">
+               ${isResolvido 
                     ? '<svg viewBox="0 0 24 24" width="12" height="12"><path fill="#28a745" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>'
                     : '<svg viewBox="0 0 24 24" width="12" height="12"><path fill="#0066cc" d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>'
                 }
@@ -327,15 +333,16 @@ function exibirHistorico(movimentacoes, container) {
                     <strong>➜</strong> 
                     <strong style="color:#333;">${m.secretaria_destino}</strong>
                 </div>
-                <div style="font-style:italic; color:#555; font-size:0.8rem;">
-                    "${m.observacao || 'Sem observação'}"
+                <div class="observation-box">
+                    ${textoFormatado}
                 </div>
                 <small style="color:#0066cc; display:block; margin-top:4px;">
                     Resp: ${m.usuario_responsavel}
                 </small>
             </div>
         </div>
-    `).join('');
+    `;
+}).join('');
 
     container.innerHTML = html;
 }
@@ -518,15 +525,22 @@ function alternarCamposResolucao() {
 }
 
 async function confirmarMovimentacao() {
-    const id = document.getElementById('modalResolucao').dataset.protocoloId;
+    const modal = document.getElementById('modalResolucao');
+    const id = modal.dataset.protocoloId;
     const acao = document.getElementById('acao-tratativa').value;
     const tratativa = document.getElementById('texto-tratativa').value.trim();
     const novaSecretaria = document.getElementById('form-nova-secretaria').value;
+    
+    const btnConfirmar = modal.querySelector('.btn-primary');
 
     if (acao === 'resolver' && !tratativa) {
         alert("Para finalizar o protocolo, é obrigatório descrever a solução.");
         return;
     }
+
+    btnConfirmar.disabled = true;
+    const textoOriginal = btnConfirmar.innerText;
+    btnConfirmar.innerText = "Processando...";
 
     const payload = {
         status: acao === 'resolver' ? 'resolvido' : 'em andamento',
@@ -548,6 +562,9 @@ async function confirmarMovimentacao() {
     } catch (error) {
         console.error("Erro na movimentação:", error);
         alert("Erro ao processar a movimentação.");
+    } finally {
+        btnConfirmar.disabled = false;
+        btnConfirmar.innerText = textoOriginal;
     }
 }
 
@@ -572,5 +589,16 @@ function logout() {
 
 document.getElementById('filtroData').addEventListener('change', carregarProtocolos);
 document.getElementById('buscaGeral').addEventListener('keyup', carregarProtocolos);
-
+document.getElementById('form-cnpj').addEventListener('input', function (e) {
+    let valor = e.target.value.replace(/\D/g, '');
+    
+    if (valor.length > 14) valor = valor.slice(0, 14); 
+    
+    valor = valor.replace(/^(\d{2})(\d)/, '$1.$2');
+    valor = valor.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+    valor = valor.replace(/\.(\d{3})(\d)/, '.$1/$2');
+    valor = valor.replace(/(\d{4})(\d)/, '$1-$2');
+    
+    e.target.value = valor;
+});
 inicializar();

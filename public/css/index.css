@@ -666,10 +666,24 @@ label {
     flex-direction: column;
     gap: 10px;
 }
-table tbody td:nth-last-child(2), /* Coluna Status */
-table tbody td:last-child {       /* Coluna Ações */
+table tbody td:nth-last-child(2),
+table tbody td:last-child {      
     text-align: center;
     vertical-align: middle;
 }
 .modal-title.info { color: #0066cc; }
 .modal-icon.info svg { stroke: #0066cc; }
+.observation-box {
+    background-color: #f0f4f8; 
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-top: 6px;
+    border-left: 4px solid #0066cc; 
+    font-size: 0.85rem;
+    color: #333;
+    line-height: 1.4;
+}
+
+.observation-box strong {
+    color: #004080;
+}

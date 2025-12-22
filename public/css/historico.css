@@ -412,3 +412,17 @@ th:nth-child(2), td:nth-child(2) {
     border-radius: 4px;
     font-size: 0.85rem;
 }
+.observation-box {
+    background-color: #f0f4f8; /* Azul bem claro/cinza */
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-top: 6px;
+    border-left: 4px solid #0066cc; /* Barra lateral para destaque */
+    font-size: 0.85rem;
+    color: #333;
+    line-height: 1.4;
+}
+
+.observation-box strong {
+    color: #004080; /* Cor um pouco mais escura para o negrito */
+}
