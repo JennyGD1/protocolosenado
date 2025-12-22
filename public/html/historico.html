@@ -127,7 +127,7 @@
                             <line x1="16" y1="17" x2="8" y2="17"></line>
                             <polyline points="10 9 9 9 8 9"></polyline>
                         </svg>
-                        <strong>Demanda Inicial</strong>
+                        <strong>Demanda</strong>
                     </label>
                     <textarea id="detalheRelatoInicial" readonly></textarea>
                 </div>
@@ -141,6 +141,27 @@
                         <strong>Descrição da Resolução</strong>
                     </label>
                     <textarea id="detalheResolucaoFinal" readonly></textarea>
+                </div>
+
+                <div class="detalhe-coluna" id="colunaStatus" style="display: none; grid-column: 1 / -1;">
+                    <label style="color: #6c757d; display: flex; align-items: center; gap: 8px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6c757d" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                        <strong>Status Atual</strong>
+                    </label>
+                    <div style="background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; text-align: center;">
+                        <div style="color: #6c757d; margin-bottom: 10px;">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#6c757d" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                        </div>
+                        <div style="font-weight: 600; color: #495057; margin-bottom: 5px;">Protocolo em andamento</div>
+                        <small style="color: #868e96;">Sem resolução final registrada</small>
+                    </div>
                 </div>
 
                 <div class="historico-fullwidth">
