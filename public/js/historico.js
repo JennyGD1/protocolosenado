@@ -111,14 +111,15 @@ async function verDetalhes(id) {
         const assuntoFormatado = protocolo.assunto 
             ? protocolo.assunto.charAt(0).toUpperCase() + protocolo.assunto.slice(1) 
             : '';
-
         document.getElementById('detalheProtocolo').innerText = `${protocolo.numero_protocolo} - ${assuntoFormatado}`;
     } else {
         document.getElementById('detalheProtocolo').innerText = "Carregando...";
     }
 
-    document.getElementById('detalheTratativa').value = "";
+    document.getElementById('detalheRelatoInicial').value = "";
+    document.getElementById('detalheResolucaoFinal').value = "";
     document.getElementById('detalheHistorico').innerHTML = "Carregando histórico...";
+    document.getElementById('detalheResolvidoPor').innerHTML = "";
     
     modal.style.display = 'flex';
 
@@ -128,71 +129,124 @@ async function verDetalhes(id) {
         });
         const movimentacoes = await resMov.json();
         
-        exibirHistorico(movimentacoes);
+        const resProt = await fetch(`/api/protocolos/${id}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const protocoloCompleto = await resProt.json();
+        
+        exibirDetalhesCompletos(movimentacoes, protocoloCompleto);
 
     } catch (error) {
         console.error(error);
         document.getElementById('detalheHistorico').innerText = "Erro ao carregar detalhes.";
     }
 }
-function exibirHistorico(movimentacoes) {
-    const container = document.getElementById('detalheHistorico');
-    const txtRelatoInicial = document.getElementById('detalheTratativa');
-    const divResolvido = document.getElementById('detalheResolvidoPor');
 
+function exibirDetalhesCompletos(movimentacoes, protocolo) {
+    let relatoInicial = "Nenhum relato inicial registrado.";
+    if (movimentacoes && movimentacoes.length > 0) {
+        const abertura = movimentacoes.find(m => 
+            m.observacao && m.observacao.includes('Abertura/Relato:')
+        );
+        if (abertura) {
+            relatoInicial = abertura.observacao.replace('Abertura/Relato: ', '');
+        } else {
+            relatoInicial = movimentacoes[movimentacoes.length - 1].observacao || relatoInicial;
+        }
+    }
+    
+    document.getElementById('detalheRelatoInicial').value = relatoInicial;
+    
+    const colunaResolucao = document.getElementById('colunaResolucao');
+    if (protocolo.status === 'resolvido' && protocolo.tratativa) {
+        colunaResolucao.style.display = 'flex';
+        document.getElementById('detalheResolucaoFinal').value = protocolo.tratativa;
+    } else {
+        colunaResolucao.style.display = 'none';
+    }
+    
+    const resolvidoPor = document.getElementById('detalheResolvidoPor');
+    if (protocolo.status === 'resolvido') {
+        const dataFechamento = protocolo.data_fechamento 
+            ? new Date(protocolo.data_fechamento).toLocaleString('pt-BR') 
+            : '-';
+        
+        resolvidoPor.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 10px; padding: 10px; background-color: #f0f9f0; border-radius: 6px; border: 1px solid #c3e6cb;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#28a745" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+                <div>
+                    <strong>Resolvido por:</strong> ${protocolo.email_tratativa || protocolo.usuario_responsavel || 'Não informado'}<br>
+                    <small style="color: #666;">em ${dataFechamento}</small>
+                </div>
+            </div>
+        `;
+    } else {
+        resolvidoPor.innerHTML = "";
+    }
+    
+    exibirHistorico(movimentacoes, protocolo);
+}
+
+function exibirHistorico(movimentacoes, protocolo) {
+    const container = document.getElementById('detalheHistorico');
+    
     if (!movimentacoes || movimentacoes.length === 0) {
-        container.innerHTML = '<p style="padding:10px; color:#777;">Nenhuma movimentação.</p>';
+        container.innerHTML = '<p style="padding:10px; color:#777; font-style:italic;">Nenhuma movimentação registrada.</p>';
         return;
     }
 
-    const abertura = movimentacoes[movimentacoes.length - 1];
-    const ultima = movimentacoes[0];
+    const historicoFiltrado = movimentacoes.filter(m => 
+        !(protocolo.status === 'resolvido' && 
+          protocolo.tratativa && 
+          m.observacao && 
+          m.observacao.includes('Tratativa Final:'))
+    );
 
-    txtRelatoInicial.value = (abertura.observacao || "").replace('Abertura/Relato: ', '');
-
-    if (ultima.secretaria_destino === 'Finalizado' || ultima.secretaria_destino === 'Resolvido Imediato') {
-        divResolvido.innerHTML = `<strong>Resolvido por:</strong> ${ultima.usuario_responsavel} em ${ultima.data_formatada}`;
-    } else {
-        divResolvido.innerHTML = "";
-    }
-
-    const html = movimentacoes.map(m => {
-        const isResolvido = m.secretaria_destino === 'Finalizado' || m.secretaria_destino === 'Resolvido Imediato';
+    const html = historicoFiltrado.map(m => {
+        const isResolvido = m.secretaria_destino === 'Finalizado' || 
+                           m.secretaria_destino === 'Resolvido Imediato';
+        
         const textoFormatado = (m.observacao || 'Sem observação')
-            .replace(/(Abertura\/Relato:|Tratativa Final:|Solução Final:|Encaminhamento:)/g, '<strong>$1</strong>');
+            .replace(/(Abertura\/Relato:|Solução Final:|Encaminhamento:)/g, '<strong>$1</strong>');
 
         return `
-            <div class="timeline-item">
-                <div class="timeline-icon" style="border-color: ${isResolvido ? '#28a745' : '#0066cc'}">
-                   ${isResolvido 
-                        ? '<svg viewBox="0 0 24 24" width="12" height="12"><path fill="#28a745" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>'
-                        : '<svg viewBox="0 0 24 24" width="12" height="12"><path fill="#0066cc" d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>'
-                    }
-                </div>
-                <div class="timeline-date">${m.data_formatada}</div>
-                <div class="timeline-content">
-                    <div style="margin-bottom:4px;">
-                        <span style="color:#666;">${m.secretaria_origem}</span> 
-                        <strong>➜</strong> 
-                        <strong style="color:#333;">${m.secretaria_destino}</strong>
-                    </div>
-                    <div class="observation-box">
-                        ${textoFormatado}
-                    </div>
-                    <small style="color:#0066cc; display:block; margin-top:4px;">
-                        Resp: ${m.usuario_responsavel}
-                    </small>
-                </div>
+        <div class="timeline-item">
+            <div class="timeline-icon" style="border-color: ${isResolvido ? '#28a745' : '#0066cc'}">
+               ${isResolvido 
+                    ? '<svg viewBox="0 0 24 24" width="12" height="12"><path fill="#28a745" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>'
+                    : '<svg viewBox="0 0 24 24" width="12" height="12"><path fill="#0066cc" d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>'
+                }
             </div>
+            <div class="timeline-date">${m.data_formatada}</div>
+            <div class="timeline-content">
+                <div style="margin-bottom:4px;">
+                    <span style="color:#666;">${m.secretaria_origem}</span> 
+                    <strong>➜</strong> 
+                    <strong style="color:#333;">${m.secretaria_destino}</strong>
+                </div>
+                <div class="observation-box">
+                    ${textoFormatado}
+                </div>
+                <small style="color:#0066cc; display:block; margin-top:4px;">
+                    Resp: ${m.usuario_responsavel}
+                </small>
+            </div>
+        </div>
         `;
     }).join('');
 
     container.innerHTML = html;
 }
+
 async function verRelatoInicial(id) {
     const modal = document.getElementById('modalRelatoRapido');
     const texto = document.getElementById('textoRelatoRapido');
     const titulo = document.getElementById('tituloRelatoRapido');
+    const numeroProtocolo = document.getElementById('numeroProtocoloRapido');
+    const dataRegistro = document.getElementById('dataRegistroRapido');
     
     try {
         const res = await fetch(`/api/protocolos/${id}/movimentacoes`, {
@@ -200,18 +254,42 @@ async function verRelatoInicial(id) {
         });
         const movimentacoes = await res.json();
         
+        const protocolo = dadosAtuais.find(p => p.id === id);
+        
+        if (protocolo) {
+            numeroProtocolo.textContent = protocolo.numero_protocolo;
+            const data = new Date(protocolo.data_registro);
+            dataRegistro.textContent = data.toLocaleDateString('pt-BR') + ' ' + data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        }
+        
         if (movimentacoes.length > 0) {
-            const abertura = movimentacoes[movimentacoes.length - 1];
-            titulo.innerText = `Demanda Inicial`;
-            texto.innerText = abertura.observacao.replace('Abertura/Relato: ', '');
+            let abertura;
+            for (let i = movimentacoes.length - 1; i >= 0; i--) {
+                if (movimentacoes[i].observacao && movimentacoes[i].observacao.includes('Abertura/Relato:')) {
+                    abertura = movimentacoes[i];
+                    break;
+                }
+            }
+            
+            if (!abertura && movimentacoes.length > 0) {
+                abertura = movimentacoes[movimentacoes.length - 1];
+            }
+            
+            if (abertura) {
+                titulo.innerText = `Relato do Protocolo`;
+                const relatoLimpo = abertura.observacao.replace('Abertura/Relato: ', '').replace('Encaminhamento: ', '');
+                texto.innerText = relatoLimpo;
+                modal.style.display = 'flex';
+            }
+        } else {
+            texto.innerText = "Nenhum relato inicial encontrado para este protocolo.";
             modal.style.display = 'flex';
         }
     } catch (e) {
         console.error("Erro ao carregar relato", e);
+        texto.innerText = "Erro ao carregar o relato do protocolo. Tente novamente.";
+        modal.style.display = 'flex';
     }
-}
-function fecharModal(id) {
-    document.getElementById(id).style.display = 'none';
 }
 
 function aplicarFiltros() {
