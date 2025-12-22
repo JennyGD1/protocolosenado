@@ -456,7 +456,6 @@ td:nth-child(2) {
 
 .protocolo-clicavel {
     color: #333c;
-    text-decoration: underline;
     cursor: pointer;
     font-weight: bold;
 }
