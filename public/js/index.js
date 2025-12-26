@@ -84,7 +84,29 @@ async function inicializar() {
     try {
         const user = await protocoloManager.getUsuario();
         userRole = user.role;
-        document.getElementById('user-display').innerText = user.email;
+        
+        const userDisplay = document.getElementById('user-display');
+        const photoContainer = document.getElementById('user-photo-container');
+        const photoEl = document.getElementById('user-photo');
+        
+        if (userDisplay) {
+            userDisplay.textContent = user.name || user.email;
+        }
+        
+        if (photoContainer && photoEl) {
+            if (user.picture) {
+                photoEl.src = user.picture;
+                photoContainer.style.display = 'flex';
+                
+                photoEl.onerror = function() {
+                    console.warn("Falha ao carregar foto do Google");
+                    this.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || user.email)}&background=0066cc&color=fff`;
+                };
+            } else {
+                photoEl.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || user.email)}&background=0066cc&color=fff`;
+                photoContainer.style.display = 'flex';
+            }
+        }
 
         if (userRole === 'restrito') {
             bloquearInterfaceRestrita();

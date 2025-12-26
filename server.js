@@ -50,6 +50,10 @@ const verificarAuth = async (req, res, next) => {
         const idToken = authHeader.split('Bearer ')[1];
         const decodedToken = await admin.auth().verifyIdToken(idToken);
         const userEmail = decodedToken.email;
+        let photoUrl = decodedToken.picture || null;
+        if (photoUrl && photoUrl.startsWith('http:')) {
+            photoUrl = photoUrl.replace('http:', 'https:');
+        }
 
         const isMaida = userEmail.endsWith('@maida.health');
         const isAllowedClient = CLIENT_EMAILS.includes(userEmail);
@@ -70,7 +74,12 @@ const verificarAuth = async (req, res, next) => {
             role = 'restrito'; 
         }
 
-        req.user = { email: userEmail, role: role };
+        req.user = { 
+            email: userEmail, 
+            role: role, 
+            name: decodedToken.name || userEmail.split('@')[0],
+            picture: photoUrl 
+        };
         next();
     } catch (error) {
         console.error("Erro Auth:", error);

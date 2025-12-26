@@ -13,7 +13,28 @@ async function inicializar() {
         
         if (!response.ok) throw new Error();
         const user = await response.json();
-        document.getElementById('user-display').innerText = user.email;
+        
+        const userDisplay = document.getElementById('user-display');
+        if (userDisplay) {
+            userDisplay.textContent = user.name || user.email;
+        }
+
+        const photoContainer = document.getElementById('user-photo-container');
+        const photoEl = document.getElementById('user-photo');
+        
+        if (photoContainer && photoEl) {
+            if (user.picture) {
+                photoEl.src = user.picture;
+                photoContainer.style.display = 'flex';
+                
+                photoEl.onerror = function() {
+                    this.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || user.email)}&background=0066cc&color=fff`;
+                };
+            } else {
+                photoEl.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || user.email)}&background=0066cc&color=fff`;
+                photoContainer.style.display = 'flex';
+            }
+        }
 
         if (user.role === 'restrito') {
             bloquearInterfaceRestrita();
@@ -23,6 +44,7 @@ async function inicializar() {
         carregarGraficos();
 
     } catch (e) {
+        console.error("Erro ao inicializar dashboard:", e);
         logout();
     }
 }

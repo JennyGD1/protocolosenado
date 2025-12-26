@@ -16,7 +16,28 @@ async function inicializar() {
         
         if (!response.ok) throw new Error();
         const user = await response.json();
-        document.getElementById('user-display').innerText = user.email;
+        
+        const userDisplay = document.getElementById('user-display');
+        if (userDisplay) {
+            userDisplay.innerText = user.name || user.email;
+        }
+
+        const photoContainer = document.getElementById('user-photo-container');
+        const photoEl = document.getElementById('user-photo');
+        
+        if (photoContainer && photoEl) {
+            if (user.picture) {
+                photoEl.src = user.picture;
+                photoContainer.style.display = 'flex';
+                
+                photoEl.onerror = function() {
+                    this.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || user.email)}&background=0066cc&color=fff`;
+                };
+            } else {
+                photoEl.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || user.email)}&background=0066cc&color=fff`;
+                photoContainer.style.display = 'flex';
+            }
+        }
 
         if (user.role === 'restrito') {
             bloquearInterfaceRestrita();
@@ -26,6 +47,7 @@ async function inicializar() {
         buscarHistorico();
 
     } catch (e) {
+        console.error("Erro na inicialização:", e);
         logout();
     }
 }
@@ -48,7 +70,6 @@ async function buscarHistorico() {
         });
         const resultado = await res.json();
 
-        // SALVA OS DADOS PARA USAR NO MODAL DEPOIS
         dadosAtuais = resultado.data || [];
 
         totalPaginas = resultado.totalPages;

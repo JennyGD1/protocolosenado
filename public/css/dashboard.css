@@ -33,27 +33,6 @@ nav {
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-nav .logo {
-    font-size: 1.4rem;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-nav .logo img {
-    height: 40px;
-    width: auto;
-}
-nav .logosis img {
-    height: 40px;
-    width: auto;
-}
-nav .logosis {
-    display: flex;
-    align-items: center;
-}
-
 .nav-links {
     flex-grow: 1;
     margin-left: 40px;
@@ -161,4 +140,55 @@ main {
     position: relative;
     height: 300px;
     width: 100%;
+}
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.logo-img {
+    height: 40px;
+    width: auto;
+    margin-right: 10px;
+}
+
+.separador-logo {
+    margin: 0 2px;
+    flex-shrink: 0;
+}
+
+.logo-cliente {
+    height: 45px;
+    width: auto;
+}
+
+#user-photo-container {
+    position: relative;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background-image: url('../img/circulo.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    animation: spin-border 4s linear infinite;
+}
+
+@keyframes spin-border {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.user-photo {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: none;
+    margin: 0;
+    display: block;
+    animation: spin-border 4s linear reverse infinite;
 }
